@@ -64,6 +64,10 @@
 
 #include "DREAM3DWidgetsLib/Widgets/DREAM3DUserManualDialog.h"
 #include "DREAM3DWidgetsLib/Widgets/DREAM3DUpdateCheckDialog.h"
+#include "DREAM3DWidgetsLib/Widgets/BookmarksDockWidget.h"
+#include "DREAM3DWidgetsLib/Widgets/FilterLibraryDockWidget.h"
+#include "DREAM3DWidgetsLib/Widgets/FilterListDockWidget.h"
+#include "DREAM3DWidgetsLib/Widgets/PrebuiltPipelinesDockWidget.h"
 #include "DREAM3DWidgetsLib/FilterWidgetManager.h"
 
 #include "QtSupportLib/QRecentFileList.h"
@@ -92,6 +96,9 @@ DREAM3DApplication::DREAM3DApplication(int& argc, char** argv) :
 
   // Create the placeholder View Menu
   m_PlaceholderViewMenu = createPlaceholderViewMenu();
+
+  // Create the global widgets
+  createGlobalWidgets();
 }
 
 // -----------------------------------------------------------------------------
@@ -102,6 +109,7 @@ DREAM3DApplication::~DREAM3DApplication()
   delete this->Splash;
   this->Splash = NULL;
 
+  // If we are in Clear Cache mode, clear our prefs file and reset the program mode
   DREAM3DSettings prefs;
   if (prefs.value("Program Mode", "") == "Clear Cache")
   {
@@ -110,6 +118,8 @@ DREAM3DApplication::~DREAM3DApplication()
 
     prefs.setValue("Program Mode", "Standard");
   }
+
+  removeGlobalWidgets();
 }
 
 // -----------------------------------------------------------------------------
@@ -122,6 +132,40 @@ void delay(int seconds)
   {
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
   }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void DREAM3DApplication::createGlobalWidgets()
+{
+  m_BookmarksDockWidget = new BookmarksDockWidget(NULL);
+  m_BookmarksDockWidget->setObjectName(QStringLiteral("m_BookmarksDockWidget"));
+  m_BookmarksDockWidget->setWindowTitle(QApplication::translate("DREAM3DApplication", "Bookmarks", 0));
+
+  m_PrebuiltPipelinesDockWidget = new PrebuiltPipelinesDockWidget(NULL);
+  m_PrebuiltPipelinesDockWidget->setObjectName(QStringLiteral("m_PrebuiltPipelinesDockWidget"));
+  m_PrebuiltPipelinesDockWidget->setWindowTitle(QApplication::translate("DREAM3DApplication", "Prebuilt Pipelines", 0));
+
+  m_FilterLibraryDockWidget = new FilterLibraryDockWidget(NULL);
+  m_FilterLibraryDockWidget->setObjectName(QStringLiteral("m_FilterLibraryDockWidget"));
+  m_FilterLibraryDockWidget->setWindowTitle(QApplication::translate("DREAM3DApplication", "Filter Library", 0));
+
+  m_FilterListDockWidget = new FilterListDockWidget(NULL);
+  m_FilterListDockWidget->setObjectName(QStringLiteral("m_FilterListDockWidget"));
+  m_FilterListDockWidget->setWindowTitle(QApplication::translate("DREAM3DApplication", "Filter List", 0));
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void DREAM3DApplication::removeGlobalWidgets()
+{
+  // Delete the global widgets
+  delete m_BookmarksDockWidget;
+  delete m_PrebuiltPipelinesDockWidget;
+  delete m_FilterLibraryDockWidget;
+  delete m_FilterListDockWidget;
 }
 
 // -----------------------------------------------------------------------------
@@ -590,34 +634,26 @@ void DREAM3DApplication::on_actionSaveAs_triggered()
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_actionAddBookmark_triggered()
 {
-  if (NULL != m_ActiveWindow)
+  QString proposedDir = m_OpenDialogLastDirectory;
+  QList<QString> newPrefPaths;
+
+  newPrefPaths = QFileDialog::getOpenFileNames(NULL, tr("Choose Pipeline File(s)"),
+    proposedDir, tr("Json File (*.json);;DREAM.3D File (*.dream3d);;Text File (*.txt);;Ini File (*.ini);;All Files (*.*)"));
+  if (true == newPrefPaths.isEmpty()) { return; }
+
+  QModelIndex parent = m_BookmarksDockWidget->getSelectedParentTreeItem();
+
+  for (int i = 0; i < newPrefPaths.size(); i++)
   {
-    BookmarksDockWidget* bookmarksDockWidget = m_ActiveWindow->getBookmarksDockWidget();
+    QString newPrefPath = newPrefPaths[i];
+    newPrefPath = QDir::toNativeSeparators(newPrefPath);
+    m_BookmarksDockWidget->addBookmark(newPrefPath, parent);
+  }
 
-    if (NULL != bookmarksDockWidget)
-    {
-      QString proposedDir = m_OpenDialogLastDirectory;
-      QList<QString> newPrefPaths;
-
-      newPrefPaths = QFileDialog::getOpenFileNames(m_ActiveWindow, tr("Choose Pipeline File(s)"),
-                                                   proposedDir, tr("Json File (*.json);;DREAM.3D File (*.dream3d);;Text File (*.txt);;Ini File (*.ini);;All Files (*.*)"));
-      if (true == newPrefPaths.isEmpty()) { return; }
-
-      QModelIndex parent = bookmarksDockWidget->getSelectedParentTreeItem();
-
-      for (int i = 0; i < newPrefPaths.size(); i++)
-      {
-        QString newPrefPath = newPrefPaths[i];
-        newPrefPath = QDir::toNativeSeparators(newPrefPath);
-        bookmarksDockWidget->addBookmark(newPrefPath, parent);
-      }
-
-      if (newPrefPaths.size() > 0)
-      {
-        // Cache the directory from the last path added
-        m_OpenDialogLastDirectory = newPrefPaths[newPrefPaths.size() - 1];
-      }
-    }
+  if (newPrefPaths.size() > 0)
+  {
+    // Cache the directory from the last path added
+    m_OpenDialogLastDirectory = newPrefPaths[newPrefPaths.size() - 1];
   }
 }
 
@@ -626,18 +662,14 @@ void DREAM3DApplication::on_actionAddBookmark_triggered()
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_actionNewFolder_triggered()
 {
-  if (NULL != m_ActiveWindow)
-  {
-    BookmarksModel* model = BookmarksModel::Instance();
-    BookmarksDockWidget* bookmarksDockWidget = m_ActiveWindow->getBookmarksDockWidget();
+  BookmarksModel* model = BookmarksModel::Instance();
 
-    QModelIndex parent = bookmarksDockWidget->getSelectedParentTreeItem();
-    QString parentName = model->index(parent.row(), BookmarksItem::Name, parent.parent()).data().toString();
+  QModelIndex parent = m_BookmarksDockWidget->getSelectedParentTreeItem();
+  QString parentName = model->index(parent.row(), BookmarksItem::Name, parent.parent()).data().toString();
 
-    QString name = "New Folder";
+  QString name = "New Folder";
 
-    bookmarksDockWidget->addTreeItem(parent, name, QIcon(":/folder_blue.png"), "", true, true, false);
-  }
+  m_BookmarksDockWidget->addTreeItem(parent, name, QIcon(":/folder_blue.png"), "", true, true, false);
 }
 
 // -----------------------------------------------------------------------------
@@ -739,12 +771,9 @@ void DREAM3DApplication::on_actionPluginInformation_triggered()
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_actionRenamePipeline_triggered()
 {
-  if (NULL != m_ActiveWindow)
-  {
-    BookmarksTreeView* bookmarksTreeView = m_ActiveWindow->getBookmarksDockWidget()->getBookmarksTreeView();
-    QModelIndex index = bookmarksTreeView->currentIndex();
-    bookmarksTreeView->edit(index);
-  }
+  BookmarksTreeView* bookmarksTreeView = m_BookmarksDockWidget->getBookmarksTreeView();
+  QModelIndex index = bookmarksTreeView->currentIndex();
+  bookmarksTreeView->edit(index);
 }
 
 // -----------------------------------------------------------------------------
@@ -752,40 +781,36 @@ void DREAM3DApplication::on_actionRenamePipeline_triggered()
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_actionRemovePipeline_triggered()
 {
-  if (NULL != m_ActiveWindow)
+  BookmarksTreeView* bookmarksTreeView = m_BookmarksDockWidget->getBookmarksTreeView();
+
+  BookmarksModel* model = BookmarksModel::Instance();
+
+  QModelIndex index = bookmarksTreeView->currentIndex();
+  QModelIndex nameIndex = model->index(index.row(), BookmarksItem::Name, index.parent());
+  QString name = nameIndex.data().toString();
+
+  QMessageBox msgBox;
+  if (model->flags(nameIndex).testFlag(Qt::ItemIsDropEnabled) == false)
   {
-    BookmarksDockWidget* bookmarksDockWidget = m_ActiveWindow->getBookmarksDockWidget();
-    BookmarksTreeView* bookmarksTreeView = bookmarksDockWidget->getBookmarksTreeView();
+    msgBox.setWindowTitle("Remove Bookmark");
+    msgBox.setText("Are you sure that you want to remove the bookmark \"" + name + "\"? The original file will not be removed.");
+  }
+  else
+  {
+    msgBox.setWindowTitle("Remove Folder");
+    msgBox.setText("Are you sure that you want to remove the folder \"" + name + "\"? The folder's contents will also be removed.");
+  }
+  msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+  msgBox.setDefaultButton(QMessageBox::Yes);
+  int ret = msgBox.exec();
 
-    BookmarksModel* model = BookmarksModel::Instance();
+  if (ret == QMessageBox::Yes)
+  {
+    //Remove favorite, graphically, from the DREAM3D interface
+    model->removeRow(index.row(), index.parent());
 
-    QModelIndex index = bookmarksTreeView->currentIndex();
-    QModelIndex nameIndex = model->index(index.row(), BookmarksItem::Name, index.parent());
-    QString name = nameIndex.data().toString();
-
-    QMessageBox msgBox;
-    if (model->flags(nameIndex).testFlag(Qt::ItemIsDropEnabled) == false)
-    {
-      msgBox.setWindowTitle("Remove Bookmark");
-      msgBox.setText("Are you sure that you want to remove the bookmark \"" + name + "\"? The original file will not be removed.");
-    }
-    else
-    {
-      msgBox.setWindowTitle("Remove Folder");
-      msgBox.setText("Are you sure that you want to remove the folder \"" + name + "\"? The folder's contents will also be removed.");
-    }
-    msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
-
-    if (ret == QMessageBox::Yes)
-    {
-      //Remove favorite, graphically, from the DREAM3D interface
-      model->removeRow(index.row(), index.parent());
-
-      // Write these changes out to the preferences file
-      emit bookmarksDockWidget->fireWriteSettings();
-    }
+    // Write these changes out to the preferences file
+    emit m_BookmarksDockWidget->fireWriteSettings();
   }
 }
 
@@ -794,48 +819,44 @@ void DREAM3DApplication::on_actionRemovePipeline_triggered()
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_actionLocateFile_triggered()
 {
-  if (NULL != m_ActiveWindow)
+  BookmarksModel* model = BookmarksModel::Instance();
+  BookmarksTreeView* bookmarksTreeView = m_BookmarksDockWidget->getBookmarksTreeView();
+
+  QModelIndex current = bookmarksTreeView->currentIndex();
+
+  QModelIndex nameIndex = model->index(current.row(), BookmarksItem::Name, current.parent());
+  QModelIndex pathIndex = model->index(current.row(), BookmarksItem::Path, current.parent());
+
+  QFileInfo fi(pathIndex.data().toString());
+  QString restrictions;
+  if (fi.completeSuffix() == "json")
   {
-    BookmarksModel* model = BookmarksModel::Instance();
-    BookmarksDockWidget* bookmarksDockWidget = m_ActiveWindow->getBookmarksDockWidget();
-    BookmarksTreeView* bookmarksTreeView = bookmarksDockWidget->getBookmarksTreeView();
-
-    QModelIndex current = bookmarksTreeView->currentIndex();
-
-    QModelIndex nameIndex = model->index(current.row(), BookmarksItem::Name, current.parent());
-    QModelIndex pathIndex = model->index(current.row(), BookmarksItem::Path, current.parent());
-
-    QFileInfo fi(pathIndex.data().toString());
-    QString restrictions;
-    if (fi.completeSuffix() == "json")
-    {
-      restrictions = "Json File (*.json)";
-    }
-    else if (fi.completeSuffix() == "dream3d")
-    {
-      restrictions = "Dream3d File(*.dream3d)";
-    }
-    else if (fi.completeSuffix() == "txt")
-    {
-      restrictions = "Text File (*.txt)";
-    }
-    else
-    {
-      restrictions = "Ini File (*.ini)";
-    }
-
-    QString filePath = QFileDialog::getOpenFileName(bookmarksTreeView, tr("Locate Pipeline File"),
-                                                    pathIndex.data().toString(), tr(restrictions.toStdString().c_str()));
-    if (true == filePath.isEmpty()) { return; }
-
-    filePath = QDir::toNativeSeparators(filePath);
-
-    // Set the new path into the item
-    model->setData(pathIndex, filePath, Qt::DisplayRole);
-
-    // Change item back to default look and functionality
-    model->setData(nameIndex, false, Qt::UserRole);
+    restrictions = "Json File (*.json)";
   }
+  else if (fi.completeSuffix() == "dream3d")
+  {
+    restrictions = "Dream3d File(*.dream3d)";
+  }
+  else if (fi.completeSuffix() == "txt")
+  {
+    restrictions = "Text File (*.txt)";
+  }
+  else
+  {
+    restrictions = "Ini File (*.ini)";
+  }
+
+  QString filePath = QFileDialog::getOpenFileName(bookmarksTreeView, tr("Locate Pipeline File"),
+    pathIndex.data().toString(), tr(restrictions.toStdString().c_str()));
+  if (true == filePath.isEmpty()) { return; }
+
+  filePath = QDir::toNativeSeparators(filePath);
+
+  // Set the new path into the item
+  model->setData(pathIndex, filePath, Qt::DisplayRole);
+
+  // Change item back to default look and functionality
+  model->setData(nameIndex, false, Qt::UserRole);
 }
 
 // -----------------------------------------------------------------------------
@@ -843,47 +864,13 @@ void DREAM3DApplication::on_actionLocateFile_triggered()
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_actionShowBookmarkInFileSystem_triggered()
 {
-  if (NULL != m_ActiveWindow)
+  BookmarksModel* model = BookmarksModel::Instance();
+  BookmarksTreeView* bookmarksTreeView = m_BookmarksDockWidget->getBookmarksTreeView();
+
+  QModelIndex index = bookmarksTreeView->currentIndex();
+  if (index.isValid())
   {
-    BookmarksModel* model = BookmarksModel::Instance();
-    BookmarksDockWidget* bookmarksDockWidget = m_ActiveWindow->getBookmarksDockWidget();
-    BookmarksTreeView* bookmarksTreeView = bookmarksDockWidget->getBookmarksTreeView();
-
-    QModelIndex index = bookmarksTreeView->currentIndex();
-    if(index.isValid())
-    {
-      QString pipelinePath = model->index(index.row(), BookmarksItem::Path, index.parent()).data().toString();
-
-      QFileInfo pipelinePathInfo(pipelinePath);
-      QString pipelinePathDir = pipelinePathInfo.path();
-
-      QString s("file://");
-#if defined(Q_OS_WIN)
-      s = s + "/"; // Need the third slash on windows because file paths start with a drive letter
-#elif defined(Q_OS_MAC)
-
-#else
-      // We are on Linux - I think
-
-#endif
-      s = s + pipelinePathDir;
-      QDesktopServices::openUrl(s);
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void DREAM3DApplication::on_actionShowPrebuiltInFileSystem_triggered()
-{
-  if (NULL != m_ActiveWindow)
-  {
-    PrebuiltPipelinesDockWidget* prebuiltsDockWidget = m_ActiveWindow->getPrebuiltsDockWidget();
-    FilterLibraryTreeWidget* prebuiltsLibraryTree = prebuiltsDockWidget->getFilterLibraryTreeWidget();
-
-    QTreeWidgetItem* item = prebuiltsLibraryTree->currentItem();
-    QString pipelinePath = item->data(1, Qt::UserRole).toString();
+    QString pipelinePath = model->index(index.row(), BookmarksItem::Path, index.parent()).data().toString();
 
     QFileInfo pipelinePathInfo(pipelinePath);
     QString pipelinePathDir = pipelinePathInfo.path();
@@ -900,6 +887,32 @@ void DREAM3DApplication::on_actionShowPrebuiltInFileSystem_triggered()
     s = s + pipelinePathDir;
     QDesktopServices::openUrl(s);
   }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void DREAM3DApplication::on_actionShowPrebuiltInFileSystem_triggered()
+{
+  FilterLibraryTreeWidget* prebuiltsLibraryTree = m_PrebuiltPipelinesDockWidget->getFilterLibraryTreeWidget();
+
+  QTreeWidgetItem* item = prebuiltsLibraryTree->currentItem();
+  QString pipelinePath = item->data(1, Qt::UserRole).toString();
+
+  QFileInfo pipelinePathInfo(pipelinePath);
+  QString pipelinePathDir = pipelinePathInfo.path();
+
+  QString s("file://");
+#if defined(Q_OS_WIN)
+  s = s + "/"; // Need the third slash on windows because file paths start with a drive letter
+#elif defined(Q_OS_MAC)
+
+#else
+  // We are on Linux - I think
+
+#endif
+  s = s + pipelinePathDir;
+  QDesktopServices::openUrl(s);
 }
 
 // -----------------------------------------------------------------------------
@@ -965,83 +978,110 @@ void DREAM3DApplication::on_pipelineViewContextMenuRequested(const QPoint& pos)
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_bookmarksDockContextMenuRequested(const QPoint& pos)
 {
-  BookmarksTreeView* bookmarksTreeView = m_ActiveWindow->getBookmarksDockWidget()->getBookmarksTreeView();
-
-  QModelIndex index = bookmarksTreeView->indexAt(pos);
-
-  QPoint mapped;
-  if (index.isValid())
+  if (NULL != m_ActiveWindow)
   {
-    // Note: We must map the point to global from the viewport to
-    // account for the header.
-    mapped = bookmarksTreeView->viewport()->mapToGlobal(pos);
-  }
-  else
-  {
-    index = QModelIndex();
-    mapped = bookmarksTreeView->mapToGlobal(pos);
-  }
+    BookmarksTreeView* bookmarksTreeView = m_BookmarksDockWidget->getBookmarksTreeView();
 
-  BookmarksModel* model = BookmarksModel::Instance();
+    QModelIndex index = bookmarksTreeView->indexAt(pos);
 
-  QAction* m_ActionAddPipeline;
-  QAction* m_ActionNewFolder;
-  QAction* m_ActionRenamePipeline;
-  QAction* m_ActionRemovePipeline;
-  QAction* m_ActionLocateFile;
-  QAction* m_ActionShowBookmarkInFileSystem;
+    QPoint mapped;
+    if (index.isValid())
+    {
+      // Note: We must map the point to global from the viewport to
+      // account for the header.
+      mapped = bookmarksTreeView->viewport()->mapToGlobal(pos);
+    }
+    else
+    {
+      index = QModelIndex();
+      mapped = bookmarksTreeView->mapToGlobal(pos);
+    }
+
+    BookmarksModel* model = BookmarksModel::Instance();
+
+    QAction* m_ActionAddPipeline;
+    QAction* m_ActionNewFolder;
+    QAction* m_ActionRenamePipeline;
+    QAction* m_ActionRemovePipeline;
+    QAction* m_ActionLocateFile;
+    QAction* m_ActionShowBookmarkInFileSystem;
 #if defined(Q_OS_MAC)
-  m_ActionAddPipeline = m_GlobalMenu->getAddBookmark();
-  m_ActionNewFolder = m_GlobalMenu->getNewFolder();
-  m_ActionRenamePipeline = m_GlobalMenu->getRenamePipeline();
-  m_ActionRemovePipeline = m_GlobalMenu->getRemovePipeline();
-  m_ActionLocateFile = m_GlobalMenu->getLocateFile();
-  m_ActionShowBookmarkInFileSystem = m_GlobalMenu->getShowBookmarkInFileSystem();
+    m_ActionAddPipeline = m_GlobalMenu->getAddBookmark();
+    m_ActionNewFolder = m_GlobalMenu->getNewFolder();
+    m_ActionRenamePipeline = m_GlobalMenu->getRenamePipeline();
+    m_ActionRemovePipeline = m_GlobalMenu->getRemovePipeline();
+    m_ActionLocateFile = m_GlobalMenu->getLocateFile();
+    m_ActionShowBookmarkInFileSystem = m_GlobalMenu->getShowBookmarkInFileSystem();
 #else
-  m_ActionAddPipeline = m_ActiveWindow->getDREAM3DMenu()->getAddBookmark();
-  m_ActionNewFolder = m_ActiveWindow->getDREAM3DMenu()->getNewFolder();
-  m_ActionRenamePipeline = m_ActiveWindow->getDREAM3DMenu()->getRenamePipeline();
-  m_ActionRemovePipeline = m_ActiveWindow->getDREAM3DMenu()->getRemovePipeline();
-  m_ActionLocateFile = m_ActiveWindow->getDREAM3DMenu()->getLocateFile();
-  m_ActionShowBookmarkInFileSystem = m_ActiveWindow->getDREAM3DMenu()->getShowBookmarkInFileSystem();
+    m_ActionAddPipeline = m_ActiveWindow->getDREAM3DMenu()->getAddBookmark();
+    m_ActionNewFolder = m_ActiveWindow->getDREAM3DMenu()->getNewFolder();
+    m_ActionRenamePipeline = m_ActiveWindow->getDREAM3DMenu()->getRenamePipeline();
+    m_ActionRemovePipeline = m_ActiveWindow->getDREAM3DMenu()->getRemovePipeline();
+    m_ActionLocateFile = m_ActiveWindow->getDREAM3DMenu()->getLocateFile();
+    m_ActionShowBookmarkInFileSystem = m_ActiveWindow->getDREAM3DMenu()->getShowBookmarkInFileSystem();
 #endif
 
-  QMenu menu;
-  if (index.isValid() == false)
-  {
-    menu.addAction(m_ActionAddPipeline);
+    QMenu menu;
+    if (index.isValid() == false)
     {
-      QAction* separator = new QAction(this);
-      separator->setSeparator(true);
-      menu.addAction(separator);
-    }
-    menu.addAction(m_ActionNewFolder);
-  }
-  else
-  {
-    QModelIndex actualIndex = model->index(index.row(), BookmarksItem::Path, index.parent());
-    QString path = actualIndex.data().toString();
-    if (path.isEmpty() == false)
-    {
-      bool itemHasErrors = model->data(actualIndex, Qt::UserRole).value<bool>();
-      if (itemHasErrors == true)
+      menu.addAction(m_ActionAddPipeline);
       {
-        menu.addAction(m_ActionLocateFile);
-
-        {
-          QAction* separator = new QAction(this);
-          separator->setSeparator(true);
-          menu.addAction(separator);
-        }
-
-        m_ActionRemovePipeline->setText("Remove Bookmark");
-        menu.addAction(m_ActionRemovePipeline);
+        QAction* separator = new QAction(this);
+        separator->setSeparator(true);
+        menu.addAction(separator);
       }
-      else
+      menu.addAction(m_ActionNewFolder);
+    }
+    else
+    {
+      QModelIndex actualIndex = model->index(index.row(), BookmarksItem::Path, index.parent());
+      QString path = actualIndex.data().toString();
+      if (path.isEmpty() == false)
+      {
+        bool itemHasErrors = model->data(actualIndex, Qt::UserRole).value<bool>();
+        if (itemHasErrors == true)
+        {
+          menu.addAction(m_ActionLocateFile);
+
+          {
+            QAction* separator = new QAction(this);
+            separator->setSeparator(true);
+            menu.addAction(separator);
+          }
+
+          m_ActionRemovePipeline->setText("Remove Bookmark");
+          menu.addAction(m_ActionRemovePipeline);
+        }
+        else
+        {
+          menu.addAction(m_ActionAddPipeline);
+
+          m_ActionRenamePipeline->setText("Rename Bookmark");
+          menu.addAction(m_ActionRenamePipeline);
+
+          {
+            QAction* separator = new QAction(this);
+            separator->setSeparator(true);
+            menu.addAction(separator);
+          }
+
+          m_ActionRemovePipeline->setText("Remove Bookmark");
+          menu.addAction(m_ActionRemovePipeline);
+
+          {
+            QAction* separator = new QAction(this);
+            separator->setSeparator(true);
+            menu.addAction(separator);
+          }
+
+          menu.addAction(m_ActionShowBookmarkInFileSystem);
+        }
+      }
+      else if (path.isEmpty())
       {
         menu.addAction(m_ActionAddPipeline);
 
-        m_ActionRenamePipeline->setText("Rename Bookmark");
+        m_ActionRenamePipeline->setText("Rename Folder");
         menu.addAction(m_ActionRenamePipeline);
 
         {
@@ -1050,7 +1090,7 @@ void DREAM3DApplication::on_bookmarksDockContextMenuRequested(const QPoint& pos)
           menu.addAction(separator);
         }
 
-        m_ActionRemovePipeline->setText("Remove Bookmark");
+        m_ActionRemovePipeline->setText("Remove Folder");
         menu.addAction(m_ActionRemovePipeline);
 
         {
@@ -1059,36 +1099,12 @@ void DREAM3DApplication::on_bookmarksDockContextMenuRequested(const QPoint& pos)
           menu.addAction(separator);
         }
 
-        menu.addAction(m_ActionShowBookmarkInFileSystem);
+        menu.addAction(m_ActionNewFolder);
       }
     }
-    else if (path.isEmpty())
-    {
-      menu.addAction(m_ActionAddPipeline);
 
-      m_ActionRenamePipeline->setText("Rename Folder");
-      menu.addAction(m_ActionRenamePipeline);
-
-      {
-        QAction* separator = new QAction(this);
-        separator->setSeparator(true);
-        menu.addAction(separator);
-      }
-
-      m_ActionRemovePipeline->setText("Remove Folder");
-      menu.addAction(m_ActionRemovePipeline);
-
-      {
-        QAction* separator = new QAction(this);
-        separator->setSeparator(true);
-        menu.addAction(separator);
-      }
-
-      menu.addAction(m_ActionNewFolder);
-    }
+    menu.exec(mapped);
   }
-
-  menu.exec(mapped);
 }
 
 // -----------------------------------------------------------------------------
@@ -1096,7 +1112,6 @@ void DREAM3DApplication::on_bookmarksDockContextMenuRequested(const QPoint& pos)
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_prebuiltsDockContextMenuRequested(const QPoint& pos)
 {
-  PrebuiltPipelinesDockWidget* prebuiltsDockWidget = m_ActiveWindow->getPrebuiltsDockWidget();
   QMenu menu;
 
 #if defined(Q_OS_MAC)
@@ -1110,7 +1125,7 @@ void DREAM3DApplication::on_prebuiltsDockContextMenuRequested(const QPoint& pos)
 
   if (NULL != m_ActiveWindow)
   {
-    menu.exec(prebuiltsDockWidget->mapToGlobal(pos));
+    menu.exec(m_PrebuiltPipelinesDockWidget->mapToGlobal(pos));
   }
 }
 
@@ -1122,11 +1137,10 @@ void DREAM3DApplication::on_actionShowFilterList_triggered(bool visible)
   if (NULL != m_ActiveWindow)
   {
     QAction* actionShowFilterList = qobject_cast<QAction*>(sender());
-    FilterListDockWidget* filterListDockWidget = m_ActiveWindow->getFilterListDockWidget();
 
-    if (NULL != actionShowFilterList && NULL != filterListDockWidget)
+    if (NULL != actionShowFilterList)
     {
-      m_ActiveWindow->updateAndSyncDockWidget(actionShowFilterList, filterListDockWidget, visible);
+      m_ActiveWindow->updateAndSyncDockWidget(actionShowFilterList, m_FilterListDockWidget, visible);
     }
   }
 }
@@ -1139,11 +1153,10 @@ void DREAM3DApplication::on_actionShowFilterLibrary_triggered(bool visible)
   if (NULL != m_ActiveWindow)
   {
     QAction* actionShowFilterLibrary = qobject_cast<QAction*>(sender());
-    FilterLibraryDockWidget* filterLibraryDockWidget = m_ActiveWindow->getFilterLibraryDockWidget();
 
-    if (NULL != actionShowFilterLibrary && NULL != filterLibraryDockWidget)
+    if (NULL != actionShowFilterLibrary)
     {
-      m_ActiveWindow->updateAndSyncDockWidget(actionShowFilterLibrary, filterLibraryDockWidget, visible);
+      m_ActiveWindow->updateAndSyncDockWidget(actionShowFilterLibrary, m_FilterLibraryDockWidget, visible);
     }
   }
 }
@@ -1156,11 +1169,10 @@ void DREAM3DApplication::on_actionShowBookmarks_triggered(bool visible)
   if (NULL != m_ActiveWindow)
   {
     QAction* actionShowBookmarks = qobject_cast<QAction*>(sender());
-    BookmarksDockWidget* bookmarksDockWidget = m_ActiveWindow->getBookmarksDockWidget();
 
-    if (NULL != actionShowBookmarks && NULL != bookmarksDockWidget)
+    if (NULL != actionShowBookmarks)
     {
-      m_ActiveWindow->updateAndSyncDockWidget(actionShowBookmarks, bookmarksDockWidget, visible);
+      m_ActiveWindow->updateAndSyncDockWidget(actionShowBookmarks, m_BookmarksDockWidget, visible);
     }
   }
 }
@@ -1173,11 +1185,10 @@ void DREAM3DApplication::on_actionShowPrebuiltPipelines_triggered(bool visible)
   if (NULL != m_ActiveWindow)
   {
     QAction* actionShowPrebuilts = qobject_cast<QAction*>(sender());
-    PrebuiltPipelinesDockWidget* prebuiltsDockWidget = m_ActiveWindow->getPrebuiltsDockWidget();
 
-    if (NULL != actionShowPrebuilts && NULL != prebuiltsDockWidget)
+    if (NULL != actionShowPrebuilts)
     {
-      m_ActiveWindow->updateAndSyncDockWidget(actionShowPrebuilts, prebuiltsDockWidget, visible);
+      m_ActiveWindow->updateAndSyncDockWidget(actionShowPrebuilts, m_PrebuiltPipelinesDockWidget, visible);
     }
   }
 }
@@ -1259,7 +1270,6 @@ DREAM3D_UI* DREAM3DApplication::getNewDREAM3DInstance()
   if (NULL != m_ActiveWindow)
   {
     newInstance->move(m_ActiveWindow->x() + 45, m_ActiveWindow->y() + 45);
-    m_ActiveWindow->connectSignalsSlots(newInstance);
   }
 
   m_ActiveWindow = newInstance;
@@ -1325,6 +1335,12 @@ void DREAM3DApplication::activeWindowChanged(DREAM3D_UI* instance)
       menuBar->removeAction(viewMenuToRemove->menuAction());
     }
 #endif
+
+    // If the DREAM3D window stored in the active window variable isn't actually active...
+    if (m_ActiveWindow->isActiveWindow() == false)
+    {
+      m_ActiveWindow = NULL;
+    }
 
     /* If the inactive signal got fired and there are no more windows,
      * this means that the last window has been closed.
@@ -1437,6 +1453,38 @@ QMenu* DREAM3DApplication::createPlaceholderViewMenu()
   menuView->addAction(actionShowIssues);
 
   return menuView;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+BookmarksDockWidget* DREAM3DApplication::getBookmarksWidget()
+{
+  return m_BookmarksDockWidget;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+FilterLibraryDockWidget* DREAM3DApplication::getFilterLibraryWidget()
+{
+  return m_FilterLibraryDockWidget;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+FilterListDockWidget* DREAM3DApplication::getFilterListWidget()
+{
+  return m_FilterListDockWidget;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+PrebuiltPipelinesDockWidget* DREAM3DApplication::getPrebuiltsWidget()
+{
+  return m_PrebuiltPipelinesDockWidget;
 }
 
 

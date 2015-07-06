@@ -84,6 +84,7 @@ BookmarksDockWidget::BookmarksDockWidget(QWidget* parent) :
 // -----------------------------------------------------------------------------
 BookmarksDockWidget::~BookmarksDockWidget()
 {
+  writeSettings();
 }
 
 
@@ -111,6 +112,8 @@ opacity: 255;\
   bookmarksTreeView->setStyleSheet(css);
 
   connect(bookmarksTreeView, SIGNAL(itemWasDropped(QModelIndex, QString&, QIcon, QString, bool, bool, bool)), this, SLOT(addTreeItem(QModelIndex, QString&, QIcon, QString, bool, bool, bool)));
+
+  readSettings();
 }
 
 // -----------------------------------------------------------------------------
@@ -493,9 +496,12 @@ bool BookmarksDockWidget::removeDir(const QString& dirName)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void BookmarksDockWidget::readSettings(QMainWindow* main, DREAM3DSettings& prefs)
+void BookmarksDockWidget::readSettings()
 {
-  main->restoreDockWidget(this);
+  DREAM3DSettings prefs;
+
+  prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Bookmarks Dock Widget");
 
   bool b = prefs.value(objectName(), false).toBool();
   setHidden(b);
@@ -512,6 +518,19 @@ void BookmarksDockWidget::readSettings(QMainWindow* main, DREAM3DSettings& prefs
   }
 
   bookmarksTreeView->setModel(model);
+
+  if (prefs.contains(QString("WindowGeometry")))
+  {
+    QByteArray geo_data = prefs.value("WindowGeometry", "").toByteArray();
+    bool ok = restoreGeometry(geo_data);
+    if (!ok)
+    {
+      qDebug() << "Error Restoring Bookmark Library's Window Geometry" << "\n";
+    }
+  }
+
+  prefs.endGroup();
+  prefs.endGroup();
 }
 
 // -----------------------------------------------------------------------------
@@ -521,16 +540,9 @@ void BookmarksDockWidget::writeSettings()
 {
   DREAM3DSettings prefs;
 
-  QString fileName = prefs.fileName();
+  prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Bookmarks Dock Widget");
 
-  writeSettings(prefs);
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void BookmarksDockWidget::writeSettings(DREAM3DSettings& prefs)
-{
   prefs.setValue(objectName(), isHidden());
 
   prefs.setValue("Horizontal Header State", bookmarksTreeView->header()->saveState());
@@ -538,6 +550,12 @@ void BookmarksDockWidget::writeSettings(DREAM3DSettings& prefs)
   QJsonObject modelObj = bookmarksTreeView->toJsonObject();
 
   prefs.setValue("Bookmarks Model", modelObj);
+
+  QByteArray geo_data = saveGeometry();
+  prefs.setValue(QString("WindowGeometry"), geo_data);
+
+  prefs.endGroup();
+  prefs.endGroup();
 }
 
 // -----------------------------------------------------------------------------

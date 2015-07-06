@@ -75,6 +75,7 @@ FilterListDockWidget::FilterListDockWidget(QWidget* parent) :
 // -----------------------------------------------------------------------------
 FilterListDockWidget::~FilterListDockWidget()
 {
+  writeSettings();
 }
 
 // -----------------------------------------------------------------------------
@@ -98,6 +99,8 @@ void FilterListDockWidget::setupGui()
   filterList->setContextMenuPolicy(Qt::CustomContextMenu);
 
   connect(filterList, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenuForWidget(const QPoint&)));
+
+  readSettings();
 }
 
 // -----------------------------------------------------------------------------
@@ -492,7 +495,7 @@ void FilterListDockWidget::searchFilters(QString text)
 // -----------------------------------------------------------------------------
 void FilterListDockWidget::on_filterList_itemDoubleClicked( QListWidgetItem* item )
 {
-  emit filterItemDoubleClicked(item->data(Qt::UserRole).toString());
+  //emit filterItemDoubleClicked(item->data(Qt::UserRole).toString());
 }
 
 // -----------------------------------------------------------------------------
@@ -636,18 +639,32 @@ QMap<QString, AbstractFilter::Pointer> FilterListDockWidget::getHumanNameMap(QLi
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterListDockWidget::writeSettings(DREAM3DSettings& prefs)
+void FilterListDockWidget::writeSettings()
 {
+  DREAM3DSettings prefs;
+
+  prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Filter List Dock Widget");
+
   prefs.setValue(objectName(), isHidden());
   prefs.setValue("ActiveSearchAction", getActiveSearchAction()->objectName());
+
+  QByteArray geo_data = saveGeometry();
+  prefs.setValue(QString("WindowGeometry"), geo_data);
+
+  prefs.endGroup();
+  prefs.endGroup();
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterListDockWidget::readSettings(QMainWindow* main, DREAM3DSettings& prefs)
+void FilterListDockWidget::readSettings()
 {
-  main->restoreDockWidget(this);
+  DREAM3DSettings prefs;
+
+  prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Filter List Dock Widget");
 
   QString objectName = prefs.value("ActiveSearchAction", "").toString();
   QList<QAction*> list = getSearchActionList();
@@ -671,6 +688,19 @@ void FilterListDockWidget::readSettings(QMainWindow* main, DREAM3DSettings& pref
     // Set "All Words" as checked by default
     list[0]->setChecked(true);
   }
+
+  if (prefs.contains(QString("WindowGeometry")))
+  {
+    QByteArray geo_data = prefs.value("WindowGeometry", "").toByteArray();
+    bool ok = restoreGeometry(geo_data);
+    if (!ok)
+    {
+      qDebug() << "Error Restoring Filter List's Window Geometry" << "\n";
+    }
+  }
+
+  prefs.endGroup();
+  prefs.endGroup();
 }
 
 // -----------------------------------------------------------------------------

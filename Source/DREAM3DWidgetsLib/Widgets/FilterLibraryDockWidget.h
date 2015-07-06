@@ -84,21 +84,19 @@ class DREAM3DWidgetsLib_EXPORT FilterLibraryDockWidget : public QDockWidget, pri
     /**
     * @brief Reads the preferences from the users pref file
     */
-    void readSettings(QMainWindow* main, DREAM3DSettings& prefs);
+    void readSettings();
 
     /**
     * @brief Writes the preferences to the users pref file
     */
-    void writeSettings(DREAM3DSettings& prefs);
+    void writeSettings();
 
   protected:
     void updateFilterGroupList(FilterManager::Collection& factories);
 
   protected slots:
-    void on_bookmarksTreeView_itemClicked( QTreeWidgetItem* item, int column );
-    void on_bookmarksTreeView_itemChanged( QTreeWidgetItem* item, int column );
-    void on_bookmarksTreeView_currentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous );
-    void on_bookmarksTreeView_itemDoubleClicked( QTreeWidgetItem* item, int column );
+    void on_filterTreeView_currentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
+    void on_filterTreeView_itemDoubleClicked(QTreeWidgetItem* item, int column);
 
     /**
     * @brief showContextMenuForWidget

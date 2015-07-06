@@ -71,7 +71,9 @@
 #include "DREAM3DWidgetsLib/Widgets/DREAM3DUpdateCheckDialog.h"
 #include "DREAM3DWidgetsLib/Widgets/PipelineViewWidget.h"
 #include "DREAM3DWidgetsLib/Widgets/FilterLibraryDockWidget.h"
+#include "DREAM3DWidgetsLib/Widgets/FilterListDockWidget.h"
 #include "DREAM3DWidgetsLib/Widgets/PrebuiltPipelinesDockWidget.h"
+#include "DREAM3DWidgetsLib/Widgets/BookmarksDockWidget.h"
 
 
 #include "Applications/DREAM3D/DREAM3DConstants.h"
@@ -191,7 +193,7 @@ void DREAM3D_UI::checkFirstRun()
       model->setData(nameIndex, "DREAM3D v4 Favorites", Qt::DisplayRole);
       model->setData(nameIndex, QIcon(":/folder_blue.png"), Qt::DecorationRole);
 
-      QDir favoritesDir = bookmarksDockWidget->findV4FavoritesDirectory();
+      QDir favoritesDir = dream3dApp->getBookmarksWidget()->findV4FavoritesDirectory();
       QString favoritesPath = favoritesDir.path();
       QFileInfo fi(favoritesPath);
 
@@ -390,23 +392,6 @@ void DREAM3D_UI::readSettings()
 
   prefs.beginGroup("DockWidgetSettings");
 
-  // Read dock widget settings
-  prefs.beginGroup("Bookmarks Dock Widget");
-  bookmarksDockWidget->readSettings(this, prefs);
-  prefs.endGroup();
-
-  prefs.beginGroup("Prebuilts Dock Widget");
-  prebuiltPipelinesDockWidget->readSettings(this, prefs);
-  prefs.endGroup();
-
-  prefs.beginGroup("Filter List Dock Widget");
-  filterListDockWidget->readSettings(this, prefs);
-  prefs.endGroup();
-
-  prefs.beginGroup("Filter Library Dock Widget");
-  filterLibraryDockWidget->readSettings(this, prefs);
-  prefs.endGroup();
-
   prefs.beginGroup("Issues Dock Widget");
   issuesDockWidget->readSettings(this, prefs);
   prefs.endGroup();
@@ -482,22 +467,6 @@ void DREAM3D_UI::writeSettings()
   prefs.beginGroup("DockWidgetSettings");
 
   // Write dock widget settings
-  prefs.beginGroup("Bookmarks Dock Widget");
-  bookmarksDockWidget->writeSettings(prefs);
-  prefs.endGroup();
-
-  prefs.beginGroup("Prebuilts Dock Widget");
-  prebuiltPipelinesDockWidget->writeSettings(prefs);
-  prefs.endGroup();
-
-  prefs.beginGroup("Filter List Dock Widget");
-  filterListDockWidget->writeSettings(prefs);
-  prefs.endGroup();
-
-  prefs.beginGroup("Filter Library Dock Widget");
-  filterLibraryDockWidget->writeSettings(prefs);
-  prefs.endGroup();
-
   prefs.beginGroup("Issues Dock Widget");
   issuesDockWidget->writeSettings(prefs);
   prefs.endGroup();
@@ -601,10 +570,6 @@ void DREAM3D_UI::setupGui()
 
   pipelineViewWidget->setStatusBar(statusbar);
 
-  // This will set the initial list of filters in the filterListDockWidget
-  // Tell the Filter Library that we have more Filters (potentially)
-  filterLibraryDockWidget->refreshFilterGroups();
-
   // Set the IssuesDockWidget as a PipelineMessageObserver Object.
   pipelineViewWidget->setPipelineMessageObserver(issuesDockWidget);
 
@@ -621,20 +586,20 @@ void DREAM3D_UI::setupGui()
 // -----------------------------------------------------------------------------
 void DREAM3D_UI::disconnectSignalsSlots()
 {
-  disconnect(filterLibraryDockWidget, SIGNAL(filterItemDoubleClicked(const QString&)),
+  disconnect(dream3dApp->getFilterLibraryWidget(), SIGNAL(filterItemDoubleClicked(const QString&)),
              pipelineViewWidget, SLOT(addFilter(const QString&)));
 
-  disconnect(filterListDockWidget, SIGNAL(filterItemDoubleClicked(const QString&)),
+  disconnect(dream3dApp->getFilterListWidget(), SIGNAL(filterItemDoubleClicked(const QString&)),
              pipelineViewWidget, SLOT(addFilter(const QString&)));
 
-  disconnect(prebuiltPipelinesDockWidget, SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
+  disconnect(dream3dApp->getPrebuiltsWidget(), SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
              dream3dApp, SLOT(newInstanceFromFile(const QString&, const bool&, const bool&)));
 
-  disconnect(bookmarksDockWidget, SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
+  disconnect(dream3dApp->getBookmarksWidget(), SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
              dream3dApp, SLOT(newInstanceFromFile(const QString&, const bool&, const bool&)));
 
   disconnect(this, SIGNAL(bookmarkNeedsToBeAdded(const QString&, const QModelIndex&)),
-             bookmarksDockWidget, SLOT(addBookmark(const QString&, const QModelIndex&)));
+    dream3dApp->getBookmarksWidget(), SLOT(addBookmark(const QString&, const QModelIndex&)));
 
   disconnect(pipelineViewWidget, SIGNAL(filterInputWidgetChanged(FilterInputWidget*)),
              this, SLOT(setFilterInputWidget(FilterInputWidget*)));
@@ -645,7 +610,7 @@ void DREAM3D_UI::disconnectSignalsSlots()
   disconnect(pipelineViewWidget, SIGNAL(filterInputWidgetEdited()),
              this, SLOT(markDocumentAsDirty()));
 
-  disconnect(bookmarksDockWidget, SIGNAL(updateStatusBar(const QString&)),
+  disconnect(dream3dApp->getBookmarksWidget(), SIGNAL(updateStatusBar(const QString&)),
              this, SLOT(setStatusBarMessage(const QString&)));
 }
 
@@ -665,20 +630,20 @@ void DREAM3D_UI::connectSignalsSlots()
   addAction(m_ActionCloseWindow);
 #endif
 
-  connect(filterLibraryDockWidget, SIGNAL(filterItemDoubleClicked(const QString&)),
+  connect(dream3dApp->getFilterLibraryWidget(), SIGNAL(filterItemDoubleClicked(const QString&)),
           pipelineViewWidget, SLOT(addFilter(const QString&)) );
 
-  connect(filterListDockWidget, SIGNAL(filterItemDoubleClicked(const QString&)),
+  connect(dream3dApp->getFilterListWidget(), SIGNAL(filterItemDoubleClicked(const QString&)),
           pipelineViewWidget, SLOT(addFilter(const QString&)) );
 
-  connect(prebuiltPipelinesDockWidget, SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
+  connect(dream3dApp->getPrebuiltsWidget(), SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
           dream3dApp, SLOT(newInstanceFromFile(const QString&, const bool&, const bool&)));
 
-  connect(bookmarksDockWidget, SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
+  connect(dream3dApp->getBookmarksWidget(), SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
           dream3dApp, SLOT(newInstanceFromFile(const QString&, const bool&, const bool&)));
 
   connect(this, SIGNAL(bookmarkNeedsToBeAdded(const QString&, const QModelIndex&)),
-          bookmarksDockWidget, SLOT(addBookmark(const QString&, const QModelIndex&)));
+    dream3dApp->getBookmarksWidget(), SLOT(addBookmark(const QString&, const QModelIndex&)));
 
   connect(pipelineViewWidget, SIGNAL(filterInputWidgetChanged(FilterInputWidget*)),
           this, SLOT(setFilterInputWidget(FilterInputWidget*)));
@@ -689,26 +654,8 @@ void DREAM3D_UI::connectSignalsSlots()
   connect(pipelineViewWidget, SIGNAL(filterInputWidgetEdited()),
           this, SLOT(markDocumentAsDirty()));
 
-  connect(bookmarksDockWidget, SIGNAL(updateStatusBar(const QString&)),
+  connect(dream3dApp->getBookmarksWidget(), SIGNAL(updateStatusBar(const QString&)),
           this, SLOT(setStatusBarMessage(const QString&)));
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void DREAM3D_UI::connectSignalsSlots(DREAM3D_UI* other)
-{
-  connect(bookmarksDockWidget->getBookmarksTreeView(), SIGNAL(collapsed(const QModelIndex&)),
-          other->getBookmarksDockWidget()->getBookmarksTreeView(), SLOT(collapse(const QModelIndex&)));
-
-  connect(other->getBookmarksDockWidget()->getBookmarksTreeView(), SIGNAL(collapsed(const QModelIndex&)),
-          bookmarksDockWidget->getBookmarksTreeView(), SLOT(collapse(const QModelIndex&)));
-
-  connect(bookmarksDockWidget->getBookmarksTreeView(), SIGNAL(expanded(const QModelIndex&)),
-          other->getBookmarksDockWidget()->getBookmarksTreeView(), SLOT(expand(const QModelIndex&)));
-
-  connect(other->getBookmarksDockWidget()->getBookmarksTreeView(), SIGNAL(expanded(const QModelIndex&)),
-          bookmarksDockWidget->getBookmarksTreeView(), SLOT(expand(const QModelIndex&)));
 }
 
 // -----------------------------------------------------------------------------
@@ -856,10 +803,10 @@ void DREAM3D_UI::on_startPipelineBtn_clicked()
     emit pipelineCanceled();
 
     // Enable FilterListDockWidget signals - resume adding filters
-    filterListDockWidget->blockSignals(false);
+    dream3dApp->getFilterListWidget()->blockSignals(false);
 
     // Enable FilterLibraryDockWidget signals - resume adding filters
-    filterLibraryDockWidget->blockSignals(false);
+    dream3dApp->getFilterLibraryWidget()->blockSignals(false);
 
     return;
   }
@@ -920,10 +867,10 @@ void DREAM3D_UI::on_startPipelineBtn_clicked()
   connect(this, SIGNAL(pipelineFinished()), dream3dApp, SLOT(toPipelineIdleState()));
 
   // Block FilterListDockWidget signals, so that we can't add filters to the view while running the pipeline
-  filterListDockWidget->blockSignals(true);
+  dream3dApp->getFilterListWidget()->blockSignals(true);
 
   // Block FilterLibraryDockWidget signals, so that we can't add filters to the view while running the pipeline
-  filterLibraryDockWidget->blockSignals(true);
+  dream3dApp->getFilterLibraryWidget()->blockSignals(true);
 
   // Move the FilterPipeline object into the thread that we just created.
   m_PipelineInFlight->moveToThread(m_WorkerThread);
@@ -1023,10 +970,10 @@ void DREAM3D_UI::pipelineDidFinish()
   m_ProgressBar->hide();
 
   // Re-enable FilterListDockWidget signals - resume adding filters
-  filterListDockWidget->blockSignals(false);
+  dream3dApp->getFilterListWidget()->blockSignals(false);
 
   // Re-enable FilterLibraryDockWidget signals - resume adding filters
-  filterLibraryDockWidget->blockSignals(false);
+  dream3dApp->getFilterLibraryWidget()->blockSignals(false);
 
   emit pipelineFinished();
 }
@@ -1086,38 +1033,6 @@ void DREAM3D_UI::updateAndSyncDockWidget(QAction* action, QDockWidget* dock, boo
 PipelineViewWidget* DREAM3D_UI::getPipelineViewWidget()
 {
   return pipelineViewWidget;
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-BookmarksDockWidget* DREAM3D_UI::getBookmarksDockWidget()
-{
-  return bookmarksDockWidget;
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-PrebuiltPipelinesDockWidget* DREAM3D_UI::getPrebuiltsDockWidget()
-{
-  return prebuiltPipelinesDockWidget;
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-FilterListDockWidget* DREAM3D_UI::getFilterListDockWidget()
-{
-  return filterListDockWidget;
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-FilterLibraryDockWidget* DREAM3D_UI::getFilterLibraryDockWidget()
-{
-  return filterLibraryDockWidget;
 }
 
 // -----------------------------------------------------------------------------
@@ -1228,25 +1143,25 @@ QMenu* DREAM3D_UI::createViewMenu()
   menuView->setTitle(QApplication::translate("DREAM3D_UI", "View", 0));
   menuView->setObjectName(QStringLiteral("menuView"));
 
-  QAction* actionShowFilterList = filterListDockWidget->toggleViewAction();
+  QAction* actionShowFilterList = dream3dApp->getFilterListWidget()->toggleViewAction();
   actionShowFilterList->setText("Filter List");
   menuView->addAction(actionShowFilterList);
   connect(actionShowFilterList, SIGNAL(triggered(bool)), dream3dApp, SLOT(on_actionShowFilterList_triggered(bool)) );
 
 
-  QAction* actionShowFilterLibrary = filterLibraryDockWidget->toggleViewAction();
+  QAction* actionShowFilterLibrary = dream3dApp->getFilterLibraryWidget()->toggleViewAction();
   actionShowFilterLibrary->setText("Filter Library");
   menuView->addAction(actionShowFilterLibrary);
   connect(actionShowFilterLibrary, SIGNAL(triggered(bool)), dream3dApp, SLOT(on_actionShowFilterLibrary_triggered(bool)) );
 
 
-  QAction* actionShowBookmarks = bookmarksDockWidget->toggleViewAction();
+  QAction* actionShowBookmarks = dream3dApp->getBookmarksWidget()->toggleViewAction();
   actionShowBookmarks->setText("Bookmarks");
   menuView->addAction(actionShowBookmarks);
   connect(actionShowBookmarks, SIGNAL(triggered(bool)), dream3dApp, SLOT(on_actionShowBookmarks_triggered(bool)) );
 
 
-  QAction* actionShowPrebuiltPipelines = prebuiltPipelinesDockWidget->toggleViewAction();
+  QAction* actionShowPrebuiltPipelines = dream3dApp->getPrebuiltsWidget()->toggleViewAction();
   actionShowPrebuiltPipelines->setText("Prebuilt Pipelines");
   menuView->addAction(actionShowPrebuiltPipelines);
   connect(actionShowPrebuiltPipelines, SIGNAL(triggered(bool)), dream3dApp, SLOT(on_actionShowPrebuiltPipelines_triggered(bool)) );

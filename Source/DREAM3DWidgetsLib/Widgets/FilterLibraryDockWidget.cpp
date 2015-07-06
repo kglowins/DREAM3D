@@ -72,6 +72,7 @@ FilterLibraryDockWidget::FilterLibraryDockWidget(QWidget* parent) :
 // -----------------------------------------------------------------------------
 FilterLibraryDockWidget::~FilterLibraryDockWidget()
 {
+  writeSettings();
 }
 
 // -----------------------------------------------------------------------------
@@ -96,10 +97,10 @@ void FilterLibraryDockWidget::refreshFilterGroups()
   qSort(grpNameSorted);
 
   // Clear out the default stuff
-  bookmarksTreeView->clear();
+  filterTreeView->clear();
 
 #if 1
-  QTreeWidgetItem* library = new QTreeWidgetItem(bookmarksTreeView);
+  QTreeWidgetItem* library = new QTreeWidgetItem(filterTreeView);
   library->setText(0, DREAM3D::Settings::Library);
   library->setIcon(0, QIcon(":/Groups/cubes.png"));
   library->setData(0, Qt::UserRole, QVariant(LIBRARY_NODE_TYPE) );
@@ -160,7 +161,7 @@ void FilterLibraryDockWidget::refreshFilterGroups()
     }
   }
   library->setExpanded(true);
-  on_bookmarksTreeView_currentItemChanged(library, NULL);
+  on_filterTreeView_currentItemChanged(library, NULL);
 }
 
 // -----------------------------------------------------------------------------
@@ -176,28 +177,13 @@ void FilterLibraryDockWidget::setupGui()
               opacity: 255;\
               background-color: #FFFFFF;\
               }");
-  bookmarksTreeView->setStyleSheet(css);
+  filterTreeView->setStyleSheet(css);
 
-  bookmarksTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
+  filterTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
 
-  connect(bookmarksTreeView, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenuForWidget(const QPoint&)));
-}
+  connect(filterTreeView, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenuForWidget(const QPoint&)));
 
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::on_bookmarksTreeView_itemClicked( QTreeWidgetItem* item, int column )
-{
-
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::on_bookmarksTreeView_itemChanged( QTreeWidgetItem* item, int column )
-{
-
+  readSettings();
 }
 
 // -----------------------------------------------------------------------------
@@ -205,7 +191,7 @@ void FilterLibraryDockWidget::on_bookmarksTreeView_itemChanged( QTreeWidgetItem*
 // -----------------------------------------------------------------------------
 void FilterLibraryDockWidget::showContextMenuForWidget(const QPoint& pos)
 {
-  QTreeWidgetItem* item = bookmarksTreeView->itemAt(pos);
+  QTreeWidgetItem* item = filterTreeView->itemAt(pos);
 
   if (NULL != item && item->childCount() == 0)
   {
@@ -258,7 +244,7 @@ void FilterLibraryDockWidget::launchHelpForItem(QString humanLabel)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::on_bookmarksTreeView_currentItemChanged(QTreeWidgetItem* item, QTreeWidgetItem* previous )
+void FilterLibraryDockWidget::on_filterTreeView_currentItemChanged(QTreeWidgetItem* item, QTreeWidgetItem* previous )
 {
   // Get the PipelineFilterWidget Manager Instance
   FilterManager* fm = FilterManager::Instance();
@@ -280,17 +266,12 @@ void FilterLibraryDockWidget::on_bookmarksTreeView_currentItemChanged(QTreeWidge
     factories = fm->getFactories(item->parent()->text(0), item->text(0));
     updateFilterGroupList(factories);
   }
-  else
-  {
-    // Update filter list with preview of current item
-    on_bookmarksTreeView_itemClicked(item, 0);
-  }
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::on_bookmarksTreeView_itemDoubleClicked( QTreeWidgetItem* item, int column )
+void FilterLibraryDockWidget::on_filterTreeView_itemDoubleClicked(QTreeWidgetItem* item, int column)
 {
   QVariant nodeType = item->data(0, Qt::UserRole);
   if(nodeType.toInt() == FILTER_NODE_TYPE)
@@ -316,18 +297,45 @@ void FilterLibraryDockWidget::updateFilterGroupList(FilterManager::Collection& f
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::writeSettings(DREAM3DSettings& prefs)
+void FilterLibraryDockWidget::writeSettings()
 {
+  DREAM3DSettings prefs;
+
+  prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Filter Library Dock Widget");
+
   prefs.setValue(objectName(), isHidden());
+
+  QByteArray geo_data = saveGeometry();
+  prefs.setValue(QString("WindowGeometry"), geo_data);
+
+  prefs.endGroup();
+  prefs.endGroup();
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::readSettings(QMainWindow* main, DREAM3DSettings& prefs)
+void FilterLibraryDockWidget::readSettings()
 {
-  main->restoreDockWidget(this);
+  DREAM3DSettings prefs;
+
+  prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Filter Library Dock Widget");
 
   bool b = prefs.value(objectName(), false).toBool();
   setHidden(b);
+
+  if (prefs.contains(QString("WindowGeometry")))
+  {
+    QByteArray geo_data = prefs.value("WindowGeometry", "").toByteArray();
+    bool ok = restoreGeometry(geo_data);
+    if (!ok)
+    {
+      qDebug() << "Error Restoring Filter Library's Window Geometry" << "\n";
+    }
+  }
+
+  prefs.endGroup();
+  prefs.endGroup();
 }

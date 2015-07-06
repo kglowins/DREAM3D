@@ -78,6 +78,7 @@ PrebuiltPipelinesDockWidget::PrebuiltPipelinesDockWidget(QWidget* parent) :
 // -----------------------------------------------------------------------------
 PrebuiltPipelinesDockWidget::~PrebuiltPipelinesDockWidget()
 {
+  writeSettings();
 }
 
 // -----------------------------------------------------------------------------
@@ -109,6 +110,7 @@ void PrebuiltPipelinesDockWidget::setupGui()
               }");
   prebuiltsLibraryTree->setStyleSheet(css);
 
+  readSettings();
 }
 
 // -----------------------------------------------------------------------------
@@ -276,7 +278,6 @@ void PrebuiltPipelinesDockWidget::on_prebuiltsLibraryTree_itemDoubleClicked( QTr
   {
     emit pipelineFileActivated(pipelinePath, false, false);
   }
-
 }
 
 
@@ -416,9 +417,12 @@ QStringList PrebuiltPipelinesDockWidget::generateFilterListFromPipelineFile(QStr
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::readSettings(QMainWindow* main, DREAM3DSettings& prefs)
+void PrebuiltPipelinesDockWidget::readSettings()
 {
-  main->restoreDockWidget(this);
+  DREAM3DSettings prefs;
+
+  prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Prebuilts Dock Widget");
 
   bool b = prefs.value(objectName(), false).toBool();
   setHidden(b);
@@ -440,13 +444,31 @@ void PrebuiltPipelinesDockWidget::readSettings(QMainWindow* main, DREAM3DSetting
     ++iter;
   }
   prefs.endGroup();
+
+  if (prefs.contains(QString("WindowGeometry")))
+  {
+    QByteArray geo_data = prefs.value("WindowGeometry", "").toByteArray();
+    bool ok = restoreGeometry(geo_data);
+    if (!ok)
+    {
+      qDebug() << "Error Restoring Prebuilt Pipeline Library's Window Geometry" << "\n";
+    }
+  }
+
+  prefs.endGroup();
+  prefs.endGroup();
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::writeSettings(DREAM3DSettings& prefs)
+void PrebuiltPipelinesDockWidget::writeSettings()
 {
+  DREAM3DSettings prefs;
+
+  prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Prebuilts Dock Widget");
+
   prefs.setValue(objectName(), isHidden());
 
   prefs.setValue("PrebuiltsHeaderState", prebuiltsLibraryTree->header()->saveState());
@@ -464,6 +486,12 @@ void PrebuiltPipelinesDockWidget::writeSettings(DREAM3DSettings& prefs)
 
     ++iter;
   }
+  prefs.endGroup();
+
+  QByteArray geo_data = saveGeometry();
+  prefs.setValue(QString("WindowGeometry"), geo_data);
+
+  prefs.endGroup();
   prefs.endGroup();
 }
 

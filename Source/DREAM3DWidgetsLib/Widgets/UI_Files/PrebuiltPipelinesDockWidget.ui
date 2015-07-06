@@ -30,8 +30,14 @@ padding-left: 5px;
 }
 </string>
   </property>
+  <property name="floating">
+   <bool>true</bool>
+  </property>
   <property name="features">
    <set>QDockWidget::AllDockWidgetFeatures</set>
+  </property>
+  <property name="allowedAreas">
+   <set>Qt::NoDockWidgetArea</set>
   </property>
   <property name="windowTitle">
    <string>[*]Prebuilt Pipelines</string>

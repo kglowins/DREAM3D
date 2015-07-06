@@ -95,12 +95,12 @@ class DREAM3DWidgetsLib_EXPORT  PrebuiltPipelinesDockWidget : public QDockWidget
     /**
     * @brief Reads the preferences from the users pref file
     */
-    void readSettings(QMainWindow* main, DREAM3DSettings& prefs);
+    void readSettings();
 
     /**
     * @brief Writes the preferences to the users pref file
     */
-    void writeSettings(DREAM3DSettings& prefs);
+    void writeSettings();
 
   protected:
     virtual QDir findPipelinesDirectory();

@@ -54,6 +54,10 @@
 
 class DSplashScreen;
 class DREAM3D_UI;
+class BookmarksDockWidget;
+class FilterLibraryDockWidget;
+class FilterListDockWidget;
+class PrebuiltPipelinesDockWidget;
 class QPluginLoader;
 class IDREAM3DPlugin;
 
@@ -82,6 +86,11 @@ class DREAM3DApplication : public QApplication
      * @return
      */
     bool event(QEvent* event);
+
+    BookmarksDockWidget* getBookmarksWidget();
+    FilterLibraryDockWidget* getFilterLibraryWidget();
+    FilterListDockWidget* getFilterListWidget();
+    PrebuiltPipelinesDockWidget* getPrebuiltsWidget();
 
   public slots:
 
@@ -168,6 +177,11 @@ class DREAM3DApplication : public QApplication
 
     QString                                 m_OpenDialogLastDirectory;
 
+    BookmarksDockWidget*                    m_BookmarksDockWidget;
+    PrebuiltPipelinesDockWidget*            m_PrebuiltPipelinesDockWidget;
+    FilterLibraryDockWidget*                m_FilterLibraryDockWidget;
+    FilterListDockWidget*                   m_FilterListDockWidget;
+
     bool                                    show_splash;
     DSplashScreen*                          Splash;
 
@@ -176,6 +190,9 @@ class DREAM3DApplication : public QApplication
     QVector<IDREAM3DPlugin*> loadPlugins();
 
     QMenu* createPlaceholderViewMenu();
+
+    void createGlobalWidgets();
+    void removeGlobalWidgets();
 
     DREAM3DApplication(const DREAM3DApplication&); // Copy Constructor Not Implemented
     void operator=(const DREAM3DApplication&); // Operator '=' Not Implemented

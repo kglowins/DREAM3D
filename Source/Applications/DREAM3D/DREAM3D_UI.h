@@ -107,30 +107,6 @@ class DREAM3D_UI : public QMainWindow, private Ui::DREAM3D_UI
     PipelineViewWidget* getPipelineViewWidget();
 
     /**
-    * @brief getPrebuiltsDockWidget
-    * @param
-    */
-    PrebuiltPipelinesDockWidget* getPrebuiltsDockWidget();
-
-    /**
-    * @brief getBookmarksDockWidget
-    * @param
-    */
-    BookmarksDockWidget* getBookmarksDockWidget();
-
-    /**
-    * @brief getFilterListDockWidget
-    * @param
-    */
-    FilterListDockWidget* getFilterListDockWidget();
-
-    /**
-    * @brief getFilterLibraryDockWidget
-    * @param
-    */
-    FilterLibraryDockWidget* getFilterLibraryDockWidget();
-
-    /**
     * @brief getFilterListDockWidget
     * @param
     */
@@ -142,10 +118,6 @@ class DREAM3D_UI : public QMainWindow, private Ui::DREAM3D_UI
     */
     void setOpenDialogLastDirectory(const QString& path);
 
-    /**
-    * @brief
-    */
-    void connectSignalsSlots(DREAM3D_UI* other);
 #if !defined(Q_OS_MAC)
     /**
     * @brief setDREAM3DMenu
@@ -158,6 +130,7 @@ class DREAM3D_UI : public QMainWindow, private Ui::DREAM3D_UI
     */
     DREAM3DMenu* getDREAM3DMenu();
 #endif
+
     /**
      * @brief updateAndSyncDockWidget
      * @param action
