@@ -1274,22 +1274,16 @@ void DREAM3DApplication::activeWindowChanged(DREAM3D_UI* instance)
     }
 #endif
 
-    // If the DREAM3D window stored in the active window variable isn't actually active...
-    if (NULL != m_ActiveWindow && m_ActiveWindow->isActiveWindow() == false)
-    {
-      m_ActiveWindow = NULL;
-    }
-
-    /* If the inactive signal got fired and there are no more windows,
-     * this means that the last window has been closed.
+    /* If we have selected a window other than a DREAM3D window, or
+     * if the last DREAM3D window has been closed.
      * Disable menu items. */
-    if (m_DREAM3DInstanceMap.size() <= 0)
+    if ((NULL != m_ActiveWindow && m_ActiveWindow->isActiveWindow() == false) || m_DREAM3DInstanceMap.size() <= 0)
     {
       m_ActiveWindow = NULL;
 
-#if defined(Q_OS_MAC)
-      toggleGlobalMenuItems(false);
-#endif
+      #if defined(Q_OS_MAC)
+          toggleGlobalMenuItems(false);
+      #endif
     }
   }
 }
