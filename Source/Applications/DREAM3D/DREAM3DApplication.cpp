@@ -135,11 +135,6 @@ bool DREAM3DApplication::initialize(int argc, char* argv[])
 {
   QApplication::setApplicationVersion(DREAM3DLib::Version::Complete());
 
-  // If Mac, initialize global menu
-#if defined (Q_OS_MAC)
-  m_GlobalMenu = new DREAM3DMenu();
-#endif
-
   // Create and show the splash screen as the main window is being created.
   QPixmap pixmap(QLatin1String(":/branded_splash.png"));
   this->Splash = new DSplashScreen(pixmap);
@@ -178,8 +173,14 @@ bool DREAM3DApplication::initialize(int argc, char* argv[])
   }
   QApplication::instance()->processEvents();
 
+  // If Mac, initialize global menu
+#if defined (Q_OS_MAC)
+  m_GlobalMenu = new DREAM3DMenu();
+#endif
+
   // Create the DREAM3D toolbox
   m_DREAM3DToolbox = new DREAM3DToolbox(NULL);
+  m_DREAM3DToolbox->readSettings();
 
   // More connections
   connect(m_DREAM3DToolbox->getPrebuiltsWidget(), SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
@@ -187,8 +188,6 @@ bool DREAM3DApplication::initialize(int argc, char* argv[])
 
   connect(m_DREAM3DToolbox->getBookmarksWidget(), SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
     this, SLOT(newInstanceFromFile(const QString&, const bool&, const bool&)));
-
-  m_DREAM3DToolbox->show();
 
   return true;
 }
@@ -526,7 +525,7 @@ void DREAM3DApplication::openRecentFile()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QMap<DREAM3D_UI*, QMenu*> DREAM3DApplication::getDREAM3DInstanceMap()
+QMap<DREAM3D_UI*, QAction*> DREAM3DApplication::getDREAM3DInstanceMap()
 {
   return m_DREAM3DInstanceMap;
 }
@@ -534,9 +533,9 @@ QMap<DREAM3D_UI*, QMenu*> DREAM3DApplication::getDREAM3DInstanceMap()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void DREAM3DApplication::registerDREAM3DWindow(DREAM3D_UI* window, QMenu* viewMenu)
+void DREAM3DApplication::registerDREAM3DWindow(DREAM3D_UI* window, QAction* issuesAction)
 {
-  m_DREAM3DInstanceMap.insert(window, viewMenu);
+  m_DREAM3DInstanceMap.insert(window, issuesAction);
 }
 
 // -----------------------------------------------------------------------------
@@ -724,7 +723,7 @@ void DREAM3DApplication::on_actionPluginInformation_triggered()
 
     if (choice == QMessageBox::Yes)
     {
-      QMutableMapIterator<DREAM3D_UI*, QMenu*> iter(m_DREAM3DInstanceMap);
+      QMutableMapIterator<DREAM3D_UI*, QAction*> iter(m_DREAM3DInstanceMap);
       while (iter.hasNext())
       {
         iter.next();
@@ -903,7 +902,7 @@ void DREAM3DApplication::on_actionCloseWindow_triggered()
 void DREAM3DApplication::on_actionExit_triggered()
 {
   bool shouldReallyClose = true;
-  QMutableMapIterator<DREAM3D_UI*, QMenu*> iter(m_DREAM3DInstanceMap);
+  QMutableMapIterator<DREAM3D_UI*, QAction*> iter(m_DREAM3DInstanceMap);
   while (iter.hasNext())
   {
     iter.next();
@@ -952,110 +951,83 @@ void DREAM3DApplication::on_pipelineViewContextMenuRequested(const QPoint& pos)
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_bookmarksDockContextMenuRequested(const QPoint& pos)
 {
-  if (NULL != m_ActiveWindow)
+  BookmarksTreeView* bookmarksTreeView = dream3dApp->getBookmarksWidget()->getBookmarksTreeView();
+
+  QModelIndex index = bookmarksTreeView->indexAt(pos);
+
+  QPoint mapped;
+  if (index.isValid())
   {
-    BookmarksTreeView* bookmarksTreeView = dream3dApp->getBookmarksWidget()->getBookmarksTreeView();
+    // Note: We must map the point to global from the viewport to
+    // account for the header.
+    mapped = bookmarksTreeView->viewport()->mapToGlobal(pos);
+  }
+  else
+  {
+    index = QModelIndex();
+    mapped = bookmarksTreeView->mapToGlobal(pos);
+  }
 
-    QModelIndex index = bookmarksTreeView->indexAt(pos);
+  BookmarksModel* model = BookmarksModel::Instance();
 
-    QPoint mapped;
-    if (index.isValid())
-    {
-      // Note: We must map the point to global from the viewport to
-      // account for the header.
-      mapped = bookmarksTreeView->viewport()->mapToGlobal(pos);
-    }
-    else
-    {
-      index = QModelIndex();
-      mapped = bookmarksTreeView->mapToGlobal(pos);
-    }
-
-    BookmarksModel* model = BookmarksModel::Instance();
-
-    QAction* m_ActionAddPipeline;
-    QAction* m_ActionNewFolder;
-    QAction* m_ActionRenamePipeline;
-    QAction* m_ActionRemovePipeline;
-    QAction* m_ActionLocateFile;
-    QAction* m_ActionShowBookmarkInFileSystem;
+  QAction* m_ActionAddPipeline;
+  QAction* m_ActionNewFolder;
+  QAction* m_ActionRenamePipeline;
+  QAction* m_ActionRemovePipeline;
+  QAction* m_ActionLocateFile;
+  QAction* m_ActionShowBookmarkInFileSystem;
 #if defined(Q_OS_MAC)
-    m_ActionAddPipeline = m_GlobalMenu->getAddBookmark();
-    m_ActionNewFolder = m_GlobalMenu->getNewFolder();
-    m_ActionRenamePipeline = m_GlobalMenu->getRenamePipeline();
-    m_ActionRemovePipeline = m_GlobalMenu->getRemovePipeline();
-    m_ActionLocateFile = m_GlobalMenu->getLocateFile();
-    m_ActionShowBookmarkInFileSystem = m_GlobalMenu->getShowBookmarkInFileSystem();
+  m_ActionAddPipeline = m_GlobalMenu->getAddBookmark();
+  m_ActionNewFolder = m_GlobalMenu->getNewFolder();
+  m_ActionRenamePipeline = m_GlobalMenu->getRenamePipeline();
+  m_ActionRemovePipeline = m_GlobalMenu->getRemovePipeline();
+  m_ActionLocateFile = m_GlobalMenu->getLocateFile();
+  m_ActionShowBookmarkInFileSystem = m_GlobalMenu->getShowBookmarkInFileSystem();
 #else
-    m_ActionAddPipeline = m_ActiveWindow->getDREAM3DMenu()->getAddBookmark();
-    m_ActionNewFolder = m_ActiveWindow->getDREAM3DMenu()->getNewFolder();
-    m_ActionRenamePipeline = m_ActiveWindow->getDREAM3DMenu()->getRenamePipeline();
-    m_ActionRemovePipeline = m_ActiveWindow->getDREAM3DMenu()->getRemovePipeline();
-    m_ActionLocateFile = m_ActiveWindow->getDREAM3DMenu()->getLocateFile();
-    m_ActionShowBookmarkInFileSystem = m_ActiveWindow->getDREAM3DMenu()->getShowBookmarkInFileSystem();
+  m_ActionAddPipeline = m_ActiveWindow->getDREAM3DMenu()->getAddBookmark();
+  m_ActionNewFolder = m_ActiveWindow->getDREAM3DMenu()->getNewFolder();
+  m_ActionRenamePipeline = m_ActiveWindow->getDREAM3DMenu()->getRenamePipeline();
+  m_ActionRemovePipeline = m_ActiveWindow->getDREAM3DMenu()->getRemovePipeline();
+  m_ActionLocateFile = m_ActiveWindow->getDREAM3DMenu()->getLocateFile();
+  m_ActionShowBookmarkInFileSystem = m_ActiveWindow->getDREAM3DMenu()->getShowBookmarkInFileSystem();
 #endif
 
-    QMenu menu;
-    if (index.isValid() == false)
+  QMenu menu;
+  if (index.isValid() == false)
+  {
+    menu.addAction(m_ActionAddPipeline);
     {
-      menu.addAction(m_ActionAddPipeline);
-      {
-        QAction* separator = new QAction(this);
-        separator->setSeparator(true);
-        menu.addAction(separator);
-      }
-      menu.addAction(m_ActionNewFolder);
+      QAction* separator = new QAction(this);
+      separator->setSeparator(true);
+      menu.addAction(separator);
     }
-    else
+    menu.addAction(m_ActionNewFolder);
+  }
+  else
+  {
+    QModelIndex actualIndex = model->index(index.row(), BookmarksItem::Path, index.parent());
+    QString path = actualIndex.data().toString();
+    if (path.isEmpty() == false)
     {
-      QModelIndex actualIndex = model->index(index.row(), BookmarksItem::Path, index.parent());
-      QString path = actualIndex.data().toString();
-      if (path.isEmpty() == false)
+      bool itemHasErrors = model->data(actualIndex, Qt::UserRole).value<bool>();
+      if (itemHasErrors == true)
       {
-        bool itemHasErrors = model->data(actualIndex, Qt::UserRole).value<bool>();
-        if (itemHasErrors == true)
+        menu.addAction(m_ActionLocateFile);
+
         {
-          menu.addAction(m_ActionLocateFile);
-
-          {
-            QAction* separator = new QAction(this);
-            separator->setSeparator(true);
-            menu.addAction(separator);
-          }
-
-          m_ActionRemovePipeline->setText("Remove Bookmark");
-          menu.addAction(m_ActionRemovePipeline);
+          QAction* separator = new QAction(this);
+          separator->setSeparator(true);
+          menu.addAction(separator);
         }
-        else
-        {
-          menu.addAction(m_ActionAddPipeline);
 
-          m_ActionRenamePipeline->setText("Rename Bookmark");
-          menu.addAction(m_ActionRenamePipeline);
-
-          {
-            QAction* separator = new QAction(this);
-            separator->setSeparator(true);
-            menu.addAction(separator);
-          }
-
-          m_ActionRemovePipeline->setText("Remove Bookmark");
-          menu.addAction(m_ActionRemovePipeline);
-
-          {
-            QAction* separator = new QAction(this);
-            separator->setSeparator(true);
-            menu.addAction(separator);
-          }
-
-          menu.addAction(m_ActionShowBookmarkInFileSystem);
-        }
+        m_ActionRemovePipeline->setText("Remove Bookmark");
+        menu.addAction(m_ActionRemovePipeline);
       }
-      else if (path.isEmpty())
+      else
       {
         menu.addAction(m_ActionAddPipeline);
 
-        m_ActionRenamePipeline->setText("Rename Folder");
+        m_ActionRenamePipeline->setText("Rename Bookmark");
         menu.addAction(m_ActionRenamePipeline);
 
         {
@@ -1064,7 +1036,7 @@ void DREAM3DApplication::on_bookmarksDockContextMenuRequested(const QPoint& pos)
           menu.addAction(separator);
         }
 
-        m_ActionRemovePipeline->setText("Remove Folder");
+        m_ActionRemovePipeline->setText("Remove Bookmark");
         menu.addAction(m_ActionRemovePipeline);
 
         {
@@ -1073,12 +1045,36 @@ void DREAM3DApplication::on_bookmarksDockContextMenuRequested(const QPoint& pos)
           menu.addAction(separator);
         }
 
-        menu.addAction(m_ActionNewFolder);
+        menu.addAction(m_ActionShowBookmarkInFileSystem);
       }
     }
+    else if (path.isEmpty())
+    {
+      menu.addAction(m_ActionAddPipeline);
 
-    menu.exec(mapped);
+      m_ActionRenamePipeline->setText("Rename Folder");
+      menu.addAction(m_ActionRenamePipeline);
+
+      {
+        QAction* separator = new QAction(this);
+        separator->setSeparator(true);
+        menu.addAction(separator);
+      }
+
+      m_ActionRemovePipeline->setText("Remove Folder");
+      menu.addAction(m_ActionRemovePipeline);
+
+      {
+        QAction* separator = new QAction(this);
+        separator->setSeparator(true);
+        menu.addAction(separator);
+      }
+
+      menu.addAction(m_ActionNewFolder);
+    }
   }
+
+  menu.exec(mapped);
 }
 
 // -----------------------------------------------------------------------------
@@ -1097,10 +1093,41 @@ void DREAM3DApplication::on_prebuiltsDockContextMenuRequested(const QPoint& pos)
   }
 #endif
 
-  if (NULL != m_ActiveWindow)
+  menu.exec(dream3dApp->getPrebuiltsWidget()->mapToGlobal(pos));
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void DREAM3DApplication::on_actionShowToolbox_triggered(bool visible)
+{
+  QAction* actionShowToolbox;
+#if defined (Q_OS_MAC)
+  actionShowToolbox = m_GlobalMenu->getShowToolbox();
+  if (NULL != actionShowToolbox && NULL != m_DREAM3DToolbox)
   {
-    menu.exec(dream3dApp->getPrebuiltsWidget()->mapToGlobal(pos));
+    actionShowToolbox->blockSignals(true);
+    m_DREAM3DToolbox->blockSignals(true);
+
+    actionShowToolbox->setChecked(visible);
+    m_DREAM3DToolbox->setVisible(visible);
+
+    actionShowToolbox->blockSignals(false);
+    m_DREAM3DToolbox->blockSignals(false);
   }
+#else
+  if (NULL != actionShowToolbox && NULL != m_DREAM3DToolbox)
+  {
+    actionShowToolbox->blockSignals(true);
+    m_DREAM3DToolbox->blockSignals(true);
+
+    actionShowToolbox->setChecked(visible);
+    m_DREAM3DToolbox->setVisible(visible);
+
+    actionShowToolbox->blockSignals(false);
+    m_DREAM3DToolbox->blockSignals(false);
+  }
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -1203,12 +1230,12 @@ void DREAM3DApplication::activeWindowChanged(DREAM3D_UI* instance)
     m_ActiveWindow = instance;
 
 #if defined(Q_OS_MAC)
-    // Set this instance's view menu to the global menu
-    QMenuBar* menuBar = m_GlobalMenu->getMenuBar();
-    QMenu* viewMenuToAdd = m_DREAM3DInstanceMap.value(instance, NULL);
-    if (NULL != viewMenuToAdd)
+    // Add this instance's "Show/Hide Issues" action into the global View menu
+    QMenu* viewMenu = m_GlobalMenu->getViewMenu();
+    QAction* issuesActionToAdd = m_DREAM3DInstanceMap.value(instance, NULL);
+    if (NULL != issuesActionToAdd)
     {
-      m_GlobalMenu->setViewMenu(viewMenuToAdd);
+      m_GlobalMenu->addIssuesAction(issuesActionToAdd);
     }
 
     /* If the active signal got fired and there is now only one window,
@@ -1219,7 +1246,7 @@ void DREAM3DApplication::activeWindowChanged(DREAM3D_UI* instance)
       // We are launching the first window, so remove the placeholder view menu
       if (NULL != m_PlaceholderViewMenu)
       {
-        menuBar->removeAction(m_PlaceholderViewMenu->menuAction());
+        viewMenu->removeAction(m_PlaceholderViewMenu->menuAction());
       }
       toggleGlobalMenuItems(true);
     }
@@ -1239,11 +1266,11 @@ void DREAM3DApplication::activeWindowChanged(DREAM3D_UI* instance)
   {
 #if defined(Q_OS_MAC)
     // Remove the inactive window's view menu from the menu bar
-    QMenuBar* menuBar = m_GlobalMenu->getMenuBar();
-    QMenu* viewMenuToRemove = m_DREAM3DInstanceMap.value(instance, NULL);
-    if(NULL != viewMenuToRemove)
+    QMenu* viewMenu = m_GlobalMenu->getViewMenu();
+    QAction* issuesActionToRemove = m_DREAM3DInstanceMap.value(instance, NULL);
+    if(NULL != issuesActionToRemove)
     {
-      menuBar->removeAction(viewMenuToRemove->menuAction());
+      viewMenu->removeAction(issuesActionToRemove);
     }
 #endif
 
@@ -1261,7 +1288,6 @@ void DREAM3DApplication::activeWindowChanged(DREAM3D_UI* instance)
       m_ActiveWindow = NULL;
 
 #if defined(Q_OS_MAC)
-      m_GlobalMenu->setViewMenu(m_PlaceholderViewMenu);
       toggleGlobalMenuItems(false);
 #endif
     }
@@ -1275,10 +1301,7 @@ void DREAM3DApplication::activeWindowChanged(DREAM3D_UI* instance)
 void DREAM3DApplication::toggleGlobalMenuItems(bool value)
 {
 #if defined(Q_OS_MAC)
-  m_GlobalMenu->toggleMenuChildren(m_GlobalMenu->getViewMenu(), value);
-  m_GlobalMenu->toggleMenuChildren(m_GlobalMenu->getBookmarksMenu(), value);
   m_GlobalMenu->toggleMenuChildren(m_GlobalMenu->getPipelineMenu(), value);
-
   m_GlobalMenu->getSave()->setEnabled(value);
   m_GlobalMenu->getSaveAs()->setEnabled(value);
 #endif
@@ -1345,6 +1368,14 @@ QMenu* DREAM3DApplication::createPlaceholderViewMenu()
   menuView->addAction(actionShowIssues);
 
   return menuView;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+DREAM3DToolbox* DREAM3DApplication::getToolbox()
+{
+  return m_DREAM3DToolbox;
 }
 
 // -----------------------------------------------------------------------------

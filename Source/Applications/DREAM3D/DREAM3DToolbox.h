@@ -52,16 +52,13 @@ public:
 
   void setupGui();
 
+  void readSettings();
+  void writeSettings();
+
   BookmarksWidget* getBookmarksWidget();
   FilterListWidget* getFilterListWidget();
   FilterLibraryWidget* getFilterLibraryWidget();
   PrebuiltsWidget* getPrebuiltsWidget();
-
-private:
-
-
-  void readSettings();
-  void writeSettings();
 
   DREAM3DToolbox(const DREAM3DToolbox&); // Copy Constructor Not Implemented
   void operator=(const DREAM3DToolbox&); // Operator '=' Not Implemented

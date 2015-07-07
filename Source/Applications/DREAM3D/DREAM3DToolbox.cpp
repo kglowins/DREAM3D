@@ -35,6 +35,8 @@
 
 #include "DREAM3DToolbox.h"
 
+#include "Applications/DREAM3D/DREAM3DApplication.h"
+
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
@@ -61,8 +63,6 @@ void DREAM3DToolbox::setupGui()
 {  
   // This will set the initial filter list into the toolbox
   filterLibraryWidget->refreshFilterGroups();
-
-  readSettings();
 }
 
 // -----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ void DREAM3DToolbox::writeSettings()
   prefs.beginGroup("DockWidgetSettings");
   prefs.beginGroup("Toolbox");
 
-  prefs.setValue(objectName(), isHidden());
+  prefs.setValue(objectName(), isVisible());
 
   QByteArray geo_data = saveGeometry();
   prefs.setValue(QString("WindowGeometry"), geo_data);
@@ -95,7 +95,7 @@ void DREAM3DToolbox::readSettings()
   prefs.beginGroup("Toolbox");
 
   bool b = prefs.value(objectName(), false).toBool();
-  setHidden(b);
+  dream3dApp->on_actionShowToolbox_triggered(b);
 
   if (prefs.contains(QString("WindowGeometry")))
   {

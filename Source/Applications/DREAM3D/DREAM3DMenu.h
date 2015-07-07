@@ -59,16 +59,13 @@ class DREAM3DMenu : public QObject
 
     QMenu* getFileMenu();
     QMenu* getViewMenu();
-    void setViewMenu(QMenu* viewMenu);
+    void addIssuesAction(QAction* issuesAction);
     QMenu* getBookmarksMenu();
     QMenu* getPipelineMenu();
     QMenu* getHelpMenu();
     QMenu* getRecentFilesMenu();
 
-    QAction* getShowFilterLibrary();
-    QAction* getShowFilterList();
-    QAction* getShowPrebuiltPipelines();
-    QAction* getShowBookmarks();
+    QAction* getShowToolbox();
     QAction* getShowIssues();
 
     QAction* getClearRecentFiles();
@@ -103,10 +100,7 @@ class DREAM3DMenu : public QObject
 
     // View Menu
     QMenu*                          m_MenuView;
-    QAction*                        m_ActionShowFilterLibrary;
-    QAction*                        m_ActionShowFilterList;
-    QAction*                        m_ActionShowPrebuiltPipelines;
-    QAction*                        m_ActionShowBookmarks;
+    QAction*                        m_ActionShowToolbox;
     QAction*                        m_ActionShowIssues;
 
     // Bookmarks Menu

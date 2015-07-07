@@ -121,14 +121,16 @@ DREAM3D_UI::DREAM3D_UI(QWidget* parent) :
   setupUi(this);
 
   // Set up the menu
-  QMenu* viewMenu = createViewMenu();
+  QAction* actionShowIssues = issuesDockWidget->toggleViewAction();
+  actionShowIssues->setText("Show Warnings/Errors");
 #if !defined(Q_OS_MAC)
   // Create the menu
   m_InstanceMenu = new DREAM3DMenu();
-  m_InstanceMenu->setViewMenu(viewMenu);
+  m_InstanceMenu->setIssuesAction(actionShowIssues);
   setMenuBar(m_InstanceMenu->getMenuBar());
 #endif
-  dream3dApp->registerDREAM3DWindow(this, viewMenu);
+  connect(actionShowIssues, SIGNAL(triggered(bool)), dream3dApp, SLOT(on_actionShowIssues_triggered(bool)) );
+  dream3dApp->registerDREAM3DWindow(this, actionShowIssues);
 
   // Do our own widget initializations
   setupGui();
@@ -1089,23 +1091,6 @@ DREAM3DMenu* DREAM3D_UI::getDREAM3DMenu()
   return m_InstanceMenu;
 }
 #endif
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-QMenu* DREAM3D_UI::createViewMenu()
-{
-  QMenu* menuView = new QMenu(this);
-  menuView->setTitle(QApplication::translate("DREAM3D_UI", "View", 0));
-  menuView->setObjectName(QStringLiteral("menuView"));
-
-  QAction* actionShowIssues = issuesDockWidget->toggleViewAction();
-  actionShowIssues->setText("Show Warnings/Errors");
-  menuView->addAction(actionShowIssues);
-  connect(actionShowIssues, SIGNAL(triggered(bool)), dream3dApp, SLOT(on_actionShowIssues_triggered(bool)) );
-
-  return menuView;
-}
 
 
 

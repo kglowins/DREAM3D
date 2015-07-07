@@ -70,9 +70,9 @@ class DREAM3DApplication : public QApplication
 
     bool initialize(int argc, char* argv[]);
 
-    QMap<DREAM3D_UI*, QMenu*> getDREAM3DInstanceMap();
+    QMap<DREAM3D_UI*, QAction*> getDREAM3DInstanceMap();
 
-    void registerDREAM3DWindow(DREAM3D_UI* window, QMenu* viewMenu);
+    void registerDREAM3DWindow(DREAM3D_UI* window, QAction* viewMenu);
     void unregisterDREAM3DWindow(DREAM3D_UI* window);
 
     DREAM3D_UI* getNewDREAM3DInstance();
@@ -86,6 +86,8 @@ class DREAM3DApplication : public QApplication
      */
     bool event(QEvent* event);
 
+    DREAM3DToolbox* getToolbox();
+
     FilterListWidget* getFilterListWidget();
     BookmarksWidget* getBookmarksWidget();
     FilterLibraryWidget* getFilterLibraryWidget();
@@ -95,6 +97,7 @@ class DREAM3DApplication : public QApplication
 
     void newInstanceFromFile(const QString& filePath, const bool& setOpenedFilePath, const bool& addToRecentFiles);
 
+    void on_actionShowToolbox_triggered(bool visible);
 
   protected:
 
@@ -152,8 +155,8 @@ class DREAM3DApplication : public QApplication
 
   private:
 
-    // This map stores each DREAM3D instance with its accompanying "View" menu
-    QMap<DREAM3D_UI*, QMenu*>               m_DREAM3DInstanceMap;
+    // This map stores each DREAM3D instance with its accompanying "Show/Hide Issues" toggle action
+    QMap<DREAM3D_UI*, QAction*>               m_DREAM3DInstanceMap;
 
     // This is the set of DREAM3D instances that are currently running a pipeline
     QSet<DREAM3D_UI*>                       m_CurrentlyRunningInstances;
