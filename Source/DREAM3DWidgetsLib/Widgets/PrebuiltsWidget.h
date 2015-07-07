@@ -33,8 +33,8 @@
 *
 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifndef _PrebuiltPipelinesDockWidget_H_
-#define _PrebuiltPipelinesDockWidget_H_
+#ifndef _PrebuiltsWidget_H_
+#define _PrebuiltsWidget_H_
 
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
@@ -49,31 +49,31 @@
 
 #include "DREAM3DWidgetsLib/DREAM3DWidgetsLib.h"
 
-#include "ui_PrebuiltPipelinesDockWidget.h"
+#include "ui_PrebuiltsWidget.h"
 
 
 class QListWidget;
 class QTreeWidgetItem;
-class FilterListDockWidget;
+class FilterListWidget;
 class FilterLibraryTreeWidget;
 class QSettings;
 
 
 /**
- * @brief The PrebuiltPipelinesDockWidget class
+ * @brief The PrebuiltsWidget class
  */
-class DREAM3DWidgetsLib_EXPORT  PrebuiltPipelinesDockWidget : public QDockWidget, private Ui::PrebuiltPipelinesDockWidget
+class DREAM3DWidgetsLib_EXPORT  PrebuiltsWidget : public QWidget, private Ui::PrebuiltsWidget
 {
 
     Q_OBJECT
 
   public:
     /**
-     * @brief PrebuiltPipelinesDockWidget
+     * @brief PrebuiltsWidget
      * @param parent
      */
-    PrebuiltPipelinesDockWidget(QWidget* parent = NULL);
-    virtual ~PrebuiltPipelinesDockWidget();
+    PrebuiltsWidget(QWidget* parent = NULL);
+    virtual ~PrebuiltsWidget();
 
     /**
      * @brief setupGui
@@ -84,7 +84,7 @@ class DREAM3DWidgetsLib_EXPORT  PrebuiltPipelinesDockWidget : public QDockWidget
      * @brief connectFilterList
      * @param filterListWidget
      */
-    void connectFilterList(FilterListDockWidget* filterListWidget);
+    void connectFilterList(FilterListWidget* filterListWidget);
 
     /**
      * @brief getFilterLibraryTreeWidget
@@ -136,8 +136,8 @@ class DREAM3DWidgetsLib_EXPORT  PrebuiltPipelinesDockWidget : public QDockWidget
 
   private:
 
-    PrebuiltPipelinesDockWidget(const PrebuiltPipelinesDockWidget&); // Copy Constructor Not Implemented
-    void operator=(const PrebuiltPipelinesDockWidget&); // Operator '=' Not Implemented
+    PrebuiltsWidget(const PrebuiltsWidget&); // Copy Constructor Not Implemented
+    void operator=(const PrebuiltsWidget&); // Operator '=' Not Implemented
 
 
 };

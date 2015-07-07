@@ -33,68 +33,38 @@
 *
 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifndef _IssuesDockWidget_H_
-#define _IssuesDockWidget_H_
 
+#ifndef _DREAM3DFilterList_H_
+#define _DREAM3DFilterList_H_
 
-#include <QtWidgets/QDockWidget>
+#include <QtCore/QPoint>
+#include <QtWidgets/QListWidget>
 
-#include "DREAM3DLib/DREAM3DLib.h"
-#include "DREAM3DLib/Common/IObserver.h"
-#include "DREAM3DLib/Common/PipelineMessage.h"
 
 #include "DREAM3DWidgetsLib/DREAM3DWidgetsLib.h"
-
-#include "QtSupportLib/DREAM3DSettings.h"
-
-#include "ui_IssuesDockWidget.h"
-
-class FilterListWidget;
-class QLabel;
-class QTableWidgetItem;
-
-class DREAM3DWidgetsLib_EXPORT IssuesDockWidget : public QDockWidget, public IObserver, private Ui::IssuesDockWidget
+/*
+ *
+ */
+class DREAM3DWidgetsLib_EXPORT DREAM3DFilterList: public QListWidget
 {
-
     Q_OBJECT
+
   public:
-    IssuesDockWidget(QWidget* parent = NULL);
-    virtual ~IssuesDockWidget();
-
-    QLabel* createHyperlinkLabel(PipelineMessage msg);
-
-    /**
-    * @brief Reads the preferences from the users pref file
-    */
-    void readSettings(QMainWindow* main, DREAM3DSettings& prefs);
-
-    /**
-    * @brief Writes the preferences to the users pref file
-    */
-    void writeSettings(DREAM3DSettings& prefs);
-
-  public slots:
-    void processPipelineMessage(const PipelineMessage& msg);
-    void clearIssues();
-    void on_errorTableWidget_itemClicked( QTableWidgetItem* item );
-    void displayCachedMessages();
-
-    void showFilterHelp(const QString &url);
-
-  signals:
+    DREAM3DFilterList(QWidget* parent = 0);
+    virtual ~DREAM3DFilterList();
 
   protected:
-    void setupGui();
-
+    void mousePressEvent(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
+    void dragEnterEvent(QDragEnterEvent* event);
+    void dragMoveEvent(QDragMoveEvent* event);
+    void dropEvent(QDropEvent* event);
 
   private:
-    QVector<PipelineMessage> m_CachedMessages;
+    void performDrag();
 
-
-    IssuesDockWidget(const IssuesDockWidget&); // Copy Constructor Not Implemented
-    void operator=(const IssuesDockWidget&); // Operator '=' Not Implemented
-
-
+    QPoint startPos;
 };
 
-#endif
+#endif /* _DREAM3DFilterList_H_ */
+

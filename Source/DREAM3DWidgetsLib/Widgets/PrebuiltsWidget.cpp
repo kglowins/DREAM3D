@@ -34,7 +34,7 @@
 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
-#include "PrebuiltPipelinesDockWidget.h"
+#include "PrebuiltsWidget.h"
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -55,14 +55,14 @@
 #include "DREAM3DLib/FilterParameters/JsonFilterParametersReader.h"
 #include "DREAM3DLib/FilterParameters/QFilterParametersReader.h"
 
-#include "FilterListDockWidget.h"
+#include "FilterListWidget.h"
 
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-PrebuiltPipelinesDockWidget::PrebuiltPipelinesDockWidget(QWidget* parent) :
-  QDockWidget(parent)
+PrebuiltsWidget::PrebuiltsWidget(QWidget* parent) :
+  QWidget(parent)
 {
   setupUi(this);
   setupGui();
@@ -76,7 +76,7 @@ PrebuiltPipelinesDockWidget::PrebuiltPipelinesDockWidget(QWidget* parent) :
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-PrebuiltPipelinesDockWidget::~PrebuiltPipelinesDockWidget()
+PrebuiltsWidget::~PrebuiltsWidget()
 {
   writeSettings();
 }
@@ -84,7 +84,7 @@ PrebuiltPipelinesDockWidget::~PrebuiltPipelinesDockWidget()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::connectFilterList(FilterListDockWidget* filterListWidget)
+void PrebuiltsWidget::connectFilterList(FilterListWidget* filterListWidget)
 {
   connect(this, SIGNAL(filterListGenerated(const QStringList&, bool)),
           filterListWidget, SLOT(updateFilterList(const QStringList&, bool) ) );
@@ -94,7 +94,7 @@ void PrebuiltPipelinesDockWidget::connectFilterList(FilterListDockWidget* filter
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::setupGui()
+void PrebuiltsWidget::setupGui()
 {
   // Clear out the default stuff
   prebuiltsLibraryTree->clear();
@@ -116,7 +116,7 @@ void PrebuiltPipelinesDockWidget::setupGui()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-FilterLibraryTreeWidget* PrebuiltPipelinesDockWidget::getFilterLibraryTreeWidget()
+FilterLibraryTreeWidget* PrebuiltsWidget::getFilterLibraryTreeWidget()
 {
   return prebuiltsLibraryTree;
 }
@@ -124,7 +124,7 @@ FilterLibraryTreeWidget* PrebuiltPipelinesDockWidget::getFilterLibraryTreeWidget
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QDir PrebuiltPipelinesDockWidget::findPipelinesDirectory()
+QDir PrebuiltsWidget::findPipelinesDirectory()
 {
   QString dirName("PrebuiltPipelines");
 
@@ -165,7 +165,7 @@ QDir PrebuiltPipelinesDockWidget::findPipelinesDirectory()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::readPipelines()
+void PrebuiltsWidget::readPipelines()
 {
   QDir pipelinesDir = findPipelinesDirectory();
 
@@ -188,7 +188,7 @@ void PrebuiltPipelinesDockWidget::readPipelines()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::addPipelinesRecursively(QDir currentDir, QTreeWidgetItem* currentDirItem, QString iconFileName,
+void PrebuiltsWidget::addPipelinesRecursively(QDir currentDir, QTreeWidgetItem* currentDirItem, QString iconFileName,
                                                           bool allowEditing, QStringList filters, FilterLibraryTreeWidget::ItemType itemType)
 {
 
@@ -252,7 +252,7 @@ void PrebuiltPipelinesDockWidget::addPipelinesRecursively(QDir currentDir, QTree
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::on_prebuiltsLibraryTree_itemClicked( QTreeWidgetItem* item, int column )
+void PrebuiltsWidget::on_prebuiltsLibraryTree_itemClicked( QTreeWidgetItem* item, int column )
 {
 #if 0
   QString favoritePath = item->data(1, Qt::UserRole).toString();
@@ -267,7 +267,7 @@ void PrebuiltPipelinesDockWidget::on_prebuiltsLibraryTree_itemClicked( QTreeWidg
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::on_prebuiltsLibraryTree_itemDoubleClicked( QTreeWidgetItem* item, int column )
+void PrebuiltsWidget::on_prebuiltsLibraryTree_itemDoubleClicked( QTreeWidgetItem* item, int column )
 {
   QString pipelinePath = item->data(1, Qt::UserRole).toString();
   if (item->type() == FilterLibraryTreeWidget::Node_Item_Type)
@@ -284,7 +284,7 @@ void PrebuiltPipelinesDockWidget::on_prebuiltsLibraryTree_itemDoubleClicked( QTr
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::on_prebuiltsLibraryTree_currentItemChanged(QTreeWidgetItem* item, QTreeWidgetItem* previous )
+void PrebuiltsWidget::on_prebuiltsLibraryTree_currentItemChanged(QTreeWidgetItem* item, QTreeWidgetItem* previous )
 {
 //  on_prebuiltsLibraryTree_itemClicked(item, 0);
 }
@@ -292,7 +292,7 @@ void PrebuiltPipelinesDockWidget::on_prebuiltsLibraryTree_currentItemChanged(QTr
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QString PrebuiltPipelinesDockWidget::generateHtmlFilterListFromPipelineFile(QString path)
+QString PrebuiltsWidget::generateHtmlFilterListFromPipelineFile(QString path)
 {
   int filterCount = 0;
   QString name;
@@ -392,7 +392,7 @@ QString PrebuiltPipelinesDockWidget::generateHtmlFilterListFromPipelineFile(QStr
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QStringList PrebuiltPipelinesDockWidget::generateFilterListFromPipelineFile(QString path)
+QStringList PrebuiltsWidget::generateFilterListFromPipelineFile(QString path)
 {
 
   QStringList filterNames;
@@ -417,7 +417,7 @@ QStringList PrebuiltPipelinesDockWidget::generateFilterListFromPipelineFile(QStr
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::readSettings()
+void PrebuiltsWidget::readSettings()
 {
   DREAM3DSettings prefs;
 
@@ -462,7 +462,7 @@ void PrebuiltPipelinesDockWidget::readSettings()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void PrebuiltPipelinesDockWidget::writeSettings()
+void PrebuiltsWidget::writeSettings()
 {
   DREAM3DSettings prefs;
 

@@ -64,10 +64,10 @@
 
 
 class IDREAM3DPlugin;
-class FilterLibraryDockWidget;
-class BookmarksDockWidget;
-class PrebuiltPipelinesDockWidget;
-class FilterListWidget;
+class FilterLibraryWidget;
+class BookmarksWidget;
+class PrebuiltsWidget;
+class DREAM3DFilterList;
 class DREAM3DUpdateCheckDialog;
 class UpdateCheckData;
 class UpdateCheck;
@@ -107,7 +107,7 @@ class DREAM3D_UI : public QMainWindow, private Ui::DREAM3D_UI
     PipelineViewWidget* getPipelineViewWidget();
 
     /**
-    * @brief getFilterListDockWidget
+    * @brief getFilterListWidget
     * @param
     */
     IssuesDockWidget* getIssuesDockWidget();
@@ -268,11 +268,6 @@ class DREAM3D_UI : public QMainWindow, private Ui::DREAM3D_UI
     * @brief
     */
     void connectSignalsSlots();
-
-    /**
-    * @brief
-    */
-    void disconnectSignalsSlots();
 
     /**
      * @brief Implements the CloseEvent to Quit the application and write settings

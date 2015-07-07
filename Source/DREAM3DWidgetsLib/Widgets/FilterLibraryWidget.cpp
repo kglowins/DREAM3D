@@ -34,7 +34,7 @@
 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
-#include "FilterLibraryDockWidget.h"
+#include "FilterLibraryWidget.h"
 
 #include <QtCore/QFileInfo>
 
@@ -43,11 +43,11 @@
 #include "DREAM3DLib/Common/IFilterFactory.hpp"
 #include "DREAM3DLib/Common/FilterFactory.hpp"
 
-#include "FilterListDockWidget.h"
+#include "FilterListWidget.h"
 
 #include "DREAM3DWidgetsLib/Widgets/DREAM3DUserManualDialog.h"
 
-#include "DREAM3DWidgetsLib/moc_FilterLibraryDockWidget.cpp"
+#include "DREAM3DWidgetsLib/moc_FilterLibraryWidget.cpp"
 
 #define LIBRARY_NODE_TYPE 0
 #define PLUGIN_NODE_TYPE 1
@@ -57,8 +57,8 @@
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-FilterLibraryDockWidget::FilterLibraryDockWidget(QWidget* parent) :
-  QDockWidget(parent),
+FilterLibraryWidget::FilterLibraryWidget(QWidget* parent) :
+  QWidget(parent),
   m_ContextMenu(new QMenu(this)),
   m_Mapper(NULL)
 {
@@ -70,7 +70,7 @@ FilterLibraryDockWidget::FilterLibraryDockWidget(QWidget* parent) :
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-FilterLibraryDockWidget::~FilterLibraryDockWidget()
+FilterLibraryWidget::~FilterLibraryWidget()
 {
   writeSettings();
 }
@@ -78,7 +78,7 @@ FilterLibraryDockWidget::~FilterLibraryDockWidget()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::connectFilterList(FilterListDockWidget* filterListWidget)
+void FilterLibraryWidget::connectFilterList(FilterListWidget* filterListWidget)
 {
   connect(this, SIGNAL(filterListGenerated(const QStringList&, bool)),
           filterListWidget, SLOT(updateFilterList(const QStringList&, bool) ) );
@@ -88,7 +88,7 @@ void FilterLibraryDockWidget::connectFilterList(FilterListDockWidget* filterList
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::refreshFilterGroups()
+void FilterLibraryWidget::refreshFilterGroups()
 {
   FilterManager* fm = FilterManager::Instance();
   QSet<QString> grpNames = fm->getGroupNames();
@@ -167,7 +167,7 @@ void FilterLibraryDockWidget::refreshFilterGroups()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::setupGui()
+void FilterLibraryWidget::setupGui()
 {
   refreshFilterGroups();
   QString css(" QToolTip {\
@@ -189,7 +189,7 @@ void FilterLibraryDockWidget::setupGui()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::showContextMenuForWidget(const QPoint& pos)
+void FilterLibraryWidget::showContextMenuForWidget(const QPoint& pos)
 {
   QTreeWidgetItem* item = filterTreeView->itemAt(pos);
 
@@ -219,7 +219,7 @@ void FilterLibraryDockWidget::showContextMenuForWidget(const QPoint& pos)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::launchHelpForItem(QString humanLabel)
+void FilterLibraryWidget::launchHelpForItem(QString humanLabel)
 {
   FilterManager* fm = FilterManager::Instance();
   if (NULL == fm)
@@ -244,7 +244,7 @@ void FilterLibraryDockWidget::launchHelpForItem(QString humanLabel)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::on_filterTreeView_currentItemChanged(QTreeWidgetItem* item, QTreeWidgetItem* previous )
+void FilterLibraryWidget::on_filterTreeView_currentItemChanged(QTreeWidgetItem* item, QTreeWidgetItem* previous )
 {
   // Get the PipelineFilterWidget Manager Instance
   FilterManager* fm = FilterManager::Instance();
@@ -271,7 +271,7 @@ void FilterLibraryDockWidget::on_filterTreeView_currentItemChanged(QTreeWidgetIt
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::on_filterTreeView_itemDoubleClicked(QTreeWidgetItem* item, int column)
+void FilterLibraryWidget::on_filterTreeView_itemDoubleClicked(QTreeWidgetItem* item, int column)
 {
   QVariant nodeType = item->data(0, Qt::UserRole);
   if(nodeType.toInt() == FILTER_NODE_TYPE)
@@ -284,7 +284,7 @@ void FilterLibraryDockWidget::on_filterTreeView_itemDoubleClicked(QTreeWidgetIte
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::updateFilterGroupList(FilterManager::Collection& factories)
+void FilterLibraryWidget::updateFilterGroupList(FilterManager::Collection& factories)
 {
   QStringList filterNames;
   for (FilterManager::Collection::iterator factory = factories.begin(); factory != factories.end(); ++factory)
@@ -297,7 +297,7 @@ void FilterLibraryDockWidget::updateFilterGroupList(FilterManager::Collection& f
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::writeSettings()
+void FilterLibraryWidget::writeSettings()
 {
   DREAM3DSettings prefs;
 
@@ -316,7 +316,7 @@ void FilterLibraryDockWidget::writeSettings()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void FilterLibraryDockWidget::readSettings()
+void FilterLibraryWidget::readSettings()
 {
   DREAM3DSettings prefs;
 

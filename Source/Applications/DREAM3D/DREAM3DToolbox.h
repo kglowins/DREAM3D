@@ -33,68 +33,39 @@
 *
 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifndef _IssuesDockWidget_H_
-#define _IssuesDockWidget_H_
+#ifndef _DREAM3DToolbox_H_
+#define _DREAM3DToolbox_H_
+
+#include <QtWidgets/QWidget>
+
+//-- UIC generated Header
+#include <ui_DREAM3DToolbox.h>
 
 
-#include <QtWidgets/QDockWidget>
-
-#include "DREAM3DLib/DREAM3DLib.h"
-#include "DREAM3DLib/Common/IObserver.h"
-#include "DREAM3DLib/Common/PipelineMessage.h"
-
-#include "DREAM3DWidgetsLib/DREAM3DWidgetsLib.h"
-
-#include "QtSupportLib/DREAM3DSettings.h"
-
-#include "ui_IssuesDockWidget.h"
-
-class FilterListWidget;
-class QLabel;
-class QTableWidgetItem;
-
-class DREAM3DWidgetsLib_EXPORT IssuesDockWidget : public QDockWidget, public IObserver, private Ui::IssuesDockWidget
+class DREAM3DToolbox : public QWidget, private Ui::DREAM3DToolbox
 {
+  Q_OBJECT
 
-    Q_OBJECT
-  public:
-    IssuesDockWidget(QWidget* parent = NULL);
-    virtual ~IssuesDockWidget();
+public:
+  DREAM3DToolbox(QWidget* parent = 0);
+  virtual ~DREAM3DToolbox();
 
-    QLabel* createHyperlinkLabel(PipelineMessage msg);
+  void setupGui();
 
-    /**
-    * @brief Reads the preferences from the users pref file
-    */
-    void readSettings(QMainWindow* main, DREAM3DSettings& prefs);
+  BookmarksWidget* getBookmarksWidget();
+  FilterListWidget* getFilterListWidget();
+  FilterLibraryWidget* getFilterLibraryWidget();
+  PrebuiltsWidget* getPrebuiltsWidget();
 
-    /**
-    * @brief Writes the preferences to the users pref file
-    */
-    void writeSettings(DREAM3DSettings& prefs);
-
-  public slots:
-    void processPipelineMessage(const PipelineMessage& msg);
-    void clearIssues();
-    void on_errorTableWidget_itemClicked( QTableWidgetItem* item );
-    void displayCachedMessages();
-
-    void showFilterHelp(const QString &url);
-
-  signals:
-
-  protected:
-    void setupGui();
+private:
 
 
-  private:
-    QVector<PipelineMessage> m_CachedMessages;
+  void readSettings();
+  void writeSettings();
 
-
-    IssuesDockWidget(const IssuesDockWidget&); // Copy Constructor Not Implemented
-    void operator=(const IssuesDockWidget&); // Operator '=' Not Implemented
-
-
+  DREAM3DToolbox(const DREAM3DToolbox&); // Copy Constructor Not Implemented
+  void operator=(const DREAM3DToolbox&); // Operator '=' Not Implemented
 };
 
-#endif
+#endif /* DREAM3DToolbox_H_ */
+

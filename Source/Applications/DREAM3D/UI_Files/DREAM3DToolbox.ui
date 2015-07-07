@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DREAM3DToolbox</class>
+ <widget class="QWidget" name="DREAM3DToolbox">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>389</width>
+    <height>361</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>DREAM3D</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="toolboxTabWidget">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="tabPosition">
+      <enum>QTabWidget::West</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Triangular</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <widget class="QWidget" name="filterListTab">
+      <attribute name="title">
+       <string>Filter List</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="FilterListWidget" name="filterListWidget" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="filterLibraryTab">
+      <attribute name="title">
+       <string>Filter Library</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="FilterLibraryWidget" name="filterLibraryWidget" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="bookmarksTab">
+      <attribute name="title">
+       <string>Bookmarks</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="BookmarksWidget" name="bookmarksWidget" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="prebuiltsTab">
+      <attribute name="title">
+       <string>Prebuilts</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="PrebuiltsWidget" name="prebuiltsWidget" native="true"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>FilterListWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">FilterListWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FilterLibraryWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">FilterLibraryWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BookmarksWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">BookmarksWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PrebuiltsWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">PrebuiltsWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

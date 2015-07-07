@@ -49,29 +49,29 @@
 
 #include "DREAM3DWidgetsLib/DREAM3DWidgetsLib.h"
 
-#include "ui_BookmarksDockWidget.h"
+#include "ui_BookmarksWidget.h"
 
 class QListWidget;
 class QTreeWidgetItem;
-class FilterListDockWidget;
+class FilterListWidget;
 class FilterLibraryTreeWidget;
 class QSettings;
 class QAction;
 
 /**
- * @brief The BookmarksDockWidget class
+ * @brief The BookmarksWidget class
  */
-class DREAM3DWidgetsLib_EXPORT BookmarksDockWidget : public QDockWidget, private Ui::BookmarksDockWidget
+class DREAM3DWidgetsLib_EXPORT BookmarksWidget : public QWidget, private Ui::BookmarksWidget
 {
 
     Q_OBJECT
   public:
     /**
-     * @brief BookmarksDockWidget
+     * @brief BookmarksWidget
      * @param parent
      */
-    BookmarksDockWidget(QWidget* parent = NULL);
-    virtual ~BookmarksDockWidget();
+    BookmarksWidget(QWidget* parent = NULL);
+    virtual ~BookmarksWidget();
 
     /**
      * @brief setupGui
@@ -82,7 +82,7 @@ class DREAM3DWidgetsLib_EXPORT BookmarksDockWidget : public QDockWidget, private
      * @brief connectFilterList
      * @param filterListWidget
      */
-    void connectFilterList(FilterListDockWidget* filterListWidget);
+    void connectFilterList(FilterListWidget* filterListWidget);
 
     /**
        @brief Delete a directory along with all of its contents.
@@ -114,14 +114,14 @@ class DREAM3DWidgetsLib_EXPORT BookmarksDockWidget : public QDockWidget, private
   public slots:
 
     /**
-    * @brief BookmarksDockWidget::addBookmark
+    * @brief BookmarksWidget::addBookmark
     * @param filePath
     * @param parent
     */
     void addBookmark(const QString& filePath, const QModelIndex& parent);
 
     /**
-    * @brief BookmarksDockWidget::addFavoriteTreeItem
+    * @brief BookmarksWidget::addFavoriteTreeItem
     * @param parent
     * @param favoriteTitle
     * @param icon
@@ -186,8 +186,8 @@ class DREAM3DWidgetsLib_EXPORT BookmarksDockWidget : public QDockWidget, private
     */
     QList<QString> deserializeTreePath(QString treePath);
 
-    BookmarksDockWidget(const BookmarksDockWidget&); // Copy Constructor Not Implemented
-    void operator=(const BookmarksDockWidget&); // Operator '=' Not Implemented
+    BookmarksWidget(const BookmarksWidget&); // Copy Constructor Not Implemented
+    void operator=(const BookmarksWidget&); // Operator '=' Not Implemented
 
 
 };

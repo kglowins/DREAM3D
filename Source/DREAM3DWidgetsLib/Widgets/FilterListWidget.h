@@ -33,38 +33,161 @@
 *
 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-
 #ifndef _FilterListWidget_H_
 #define _FilterListWidget_H_
 
-#include <QtCore/QPoint>
-#include <QtWidgets/QListWidget>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QMenu>
 
+#include <QtCore/QSignalMapper>
+#include <QtCore/QList>
 
 #include "DREAM3DWidgetsLib/DREAM3DWidgetsLib.h"
-/*
- *
- */
-class DREAM3DWidgetsLib_EXPORT FilterListWidget: public QListWidget
+#include "DREAM3DLib/Common/FilterManager.h"
+
+#include "QtSupportLib/DREAM3DSettings.h"
+
+#include "ui_FilterListWidget.h"
+
+
+
+class DREAM3DWidgetsLib_EXPORT FilterListWidget : public QWidget, private Ui::FilterListWidget
 {
+
     Q_OBJECT
 
   public:
-    FilterListWidget(QWidget* parent = 0);
+    FilterListWidget(QWidget* parent = NULL);
     virtual ~FilterListWidget();
 
+    QList<QString> serializeString(QString string, char token);
+    QString deserializeString(QList<QString> list, char token);
+
+    void matchFilter(QMapIterator<QString, IFilterFactory::Pointer> iter, QString fullWord, int& filterCount);
+
+    /**
+    * @brief Reads the preferences from the users pref file
+    */
+    void readSettings();
+
+    /**
+    * @brief Writes the preferences to the users pref file
+    */
+    void writeSettings();
+
+    /**
+    * @brief Returns true if a search is in progress, else returns false
+    */
+    bool searchInProgress();
+
+    /**
+    * @brief Returns the filter list widget
+    */
+    DREAM3DFilterList* getDREAM3DFilterList();
+
+  public slots:
+
+    /**
+     * @brief on_filterList_itemDoubleClicked
+     * @param item
+     */
+    void on_filterList_itemDoubleClicked( QListWidgetItem* item );
+
+    /**
+    * @brief searchFilters triggered when the user types something in the Search Field
+    */
+    void searchFilters(QString text);
+
+    /**
+     * @brief updateFilterList This method extracts all the names of the filters that have been
+     * loaded into the application
+     */
+    void updateFilterList(bool sortItems = true);
+
+    /**
+    * @brief showContextMenuForWidget
+    * @param pos
+    */
+    void showContextMenuForWidget(const QPoint& pos);
+
+    /**
+    * @brief launchHelpForItem
+    * @param name
+    */
+    void launchHelpForItem(QString name);
+
+    /**
+    * @brief searchFieldsChanged
+    */
+    void searchFieldsChanged(bool isChecked);
+
+    /**
+    * @brief getActiveSearchAction
+    */
+    QAction* getActiveSearchAction();
+
+    /**
+    * @brief setActiveSearchAction
+    */
+    void setActiveSearchAction(QAction* action);
+
+    /**
+    * @brief getActiveSearchAction
+    */
+    QList<QAction*> getSearchActionList();
+
+  signals:
+
+    /**
+     * @brief filterItemDoubleClicked
+     * @param filterName
+     */
+    void filterItemDoubleClicked(const QString& filterName);
+
+
   protected:
-    void mousePressEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
-    void dragEnterEvent(QDragEnterEvent* event);
-    void dragMoveEvent(QDragMoveEvent* event);
-    void dropEvent(QDropEvent* event);
+
+    /**
+    * @brief Detect a key press
+    */
+    void keyPressEvent(QKeyEvent* event);
+
+    /**
+     * @brief setupGui Called to get everything in the GUI setup correctly
+     */
+    void setupGui();
+
+    /**
+     * @brief setupSearchFieldActions
+     */
+    void setupSearchField();
+
+    /**
+     * @brief addItemToList
+     * @param filter
+     */
+    void addItemToList(AbstractFilter::Pointer filter);
 
   private:
-    void performDrag();
+    QMenu* m_ContextMenu;
+    QSignalMapper* m_Mapper;
 
-    QPoint startPos;
+    bool m_SearchAnyWords;
+    bool m_SearchExactPhrase;
+    bool m_SearchAllWords;
+
+    QAction* m_ActionAnyWords;
+    QAction* m_ActionExactPhrase;
+    QAction* m_ActionAllWords;
+
+    FilterManager::Collection  m_LoadedFilters;
+
+    QMap<QString, AbstractFilter::Pointer> getHumanNameMap(QList<AbstractFilter::Pointer> list);
+
+    FilterListWidget(const FilterListWidget&); // Copy Constructor Not Implemented
+    void operator=(const FilterListWidget&); // Operator '=' Not Implemented
 };
+
 
 #endif /* _FilterListWidget_H_ */
 
