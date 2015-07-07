@@ -60,6 +60,15 @@ public:
   FilterLibraryWidget* getFilterLibraryWidget();
   PrebuiltsWidget* getPrebuiltsWidget();
 
+protected:
+  void showEvent(QShowEvent * event) override;
+  void hideEvent(QHideEvent * event) override;
+
+signals:
+  void toolBoxVisibilityChanged(bool visible);
+
+private:
+
   DREAM3DToolbox(const DREAM3DToolbox&); // Copy Constructor Not Implemented
   void operator=(const DREAM3DToolbox&); // Operator '=' Not Implemented
 };

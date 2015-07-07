@@ -182,6 +182,9 @@ bool DREAM3DApplication::initialize(int argc, char* argv[])
   m_DREAM3DToolbox = new DREAM3DToolbox(NULL);
   m_DREAM3DToolbox->readSettings();
 
+  connect(m_DREAM3DToolbox, SIGNAL(toolBoxVisibilityChanged(bool)),
+    this, SLOT(on_actionShowToolbox_triggered(bool)));
+
   // More connections
   connect(m_DREAM3DToolbox->getPrebuiltsWidget(), SIGNAL(pipelineFileActivated(const QString&, const bool&, const bool&)),
     this, SLOT(newInstanceFromFile(const QString&, const bool&, const bool&)));
@@ -1116,16 +1119,25 @@ void DREAM3DApplication::on_actionShowToolbox_triggered(bool visible)
     m_DREAM3DToolbox->blockSignals(false);
   }
 #else
-  actionShowToolbox = m_ActiveWindow->getDREAM3DMenu()->getShowToolbox();
-  if (NULL != actionShowToolbox && NULL != m_DREAM3DToolbox)
+  QMapIterator<DREAM3D_UI*, QAction*> iter(m_DREAM3DInstanceMap);
+  while (iter.hasNext())
   {
-    actionShowToolbox->blockSignals(true);
+    iter.next();
+
+    DREAM3D_UI* ui = iter.key();
+    actionShowToolbox = ui->getDREAM3DMenu()->getShowToolbox();
+    if (NULL != actionShowToolbox && NULL != m_DREAM3DToolbox)
+    {
+      actionShowToolbox->blockSignals(true);
+      actionShowToolbox->setChecked(visible);
+      actionShowToolbox->blockSignals(false);
+    }
+  }
+
+  if (NULL != m_DREAM3DToolbox)
+  {
     m_DREAM3DToolbox->blockSignals(true);
-
-    actionShowToolbox->setChecked(visible);
     m_DREAM3DToolbox->setVisible(visible);
-
-    actionShowToolbox->blockSignals(false);
     m_DREAM3DToolbox->blockSignals(false);
   }
 #endif

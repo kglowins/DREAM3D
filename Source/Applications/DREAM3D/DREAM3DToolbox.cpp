@@ -147,5 +147,25 @@ PrebuiltsWidget* DREAM3DToolbox::getPrebuiltsWidget()
   return prebuiltsWidget;
 }
 
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void DREAM3DToolbox::showEvent(QShowEvent * event)
+{
+  emit toolBoxVisibilityChanged(true);
+
+  QWidget::showEvent(event);
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void DREAM3DToolbox::hideEvent(QHideEvent * event)
+{
+  emit toolBoxVisibilityChanged(false);
+
+  QWidget::hideEvent(event);
+}
+
 
 

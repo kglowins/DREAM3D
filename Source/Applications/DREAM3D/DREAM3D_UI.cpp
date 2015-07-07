@@ -126,6 +126,7 @@ DREAM3D_UI::DREAM3D_UI(QWidget* parent) :
 #if !defined(Q_OS_MAC)
   // Create the menu
   m_InstanceMenu = new DREAM3DMenu();
+  m_InstanceMenu->getShowToolbox()->setChecked(dream3dApp->getToolbox()->isVisible());
   m_InstanceMenu->addIssuesAction(actionShowIssues);
   setMenuBar(m_InstanceMenu->getMenuBar());
 #endif
