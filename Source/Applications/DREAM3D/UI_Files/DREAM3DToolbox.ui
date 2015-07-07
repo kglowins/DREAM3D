@@ -37,7 +37,9 @@
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true"/>
+      <string notr="true">QTabWidget::tab-bar{
+alignment: left;
+}</string>
      </property>
      <property name="tabPosition">
       <enum>QTabWidget::West</enum>

@@ -58,7 +58,7 @@ DREAM3DToolbox::~DREAM3DToolbox()
 //
 // -----------------------------------------------------------------------------
 void DREAM3DToolbox::setupGui()
-{
+{  
   // This will set the initial filter list into the toolbox
   filterLibraryWidget->refreshFilterGroups();
 
@@ -73,12 +73,14 @@ void DREAM3DToolbox::writeSettings()
   DREAM3DSettings prefs;
 
   prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Toolbox");
 
   prefs.setValue(objectName(), isHidden());
 
   QByteArray geo_data = saveGeometry();
   prefs.setValue(QString("WindowGeometry"), geo_data);
 
+  prefs.endGroup();
   prefs.endGroup();
 }
 
@@ -90,6 +92,7 @@ void DREAM3DToolbox::readSettings()
   DREAM3DSettings prefs;
 
   prefs.beginGroup("DockWidgetSettings");
+  prefs.beginGroup("Toolbox");
 
   bool b = prefs.value(objectName(), false).toBool();
   setHidden(b);
@@ -103,7 +106,12 @@ void DREAM3DToolbox::readSettings()
       qDebug() << "Error Restoring DREAM3D Toolbox's Window Geometry" << "\n";
     }
   }
+  else
+  {
+    move(0, 0);
+  }
 
+  prefs.endGroup();
   prefs.endGroup();
 }
 
