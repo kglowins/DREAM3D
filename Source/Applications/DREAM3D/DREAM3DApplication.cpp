@@ -928,20 +928,20 @@ void DREAM3DApplication::on_actionExit_triggered()
 // -----------------------------------------------------------------------------
 void DREAM3DApplication::on_pipelineViewContextMenuRequested(const QPoint& pos)
 {
-  PipelineViewWidget* pipelineView = m_ActiveWindow->getPipelineViewWidget();
-  QMenu menu;
-
-#if defined(Q_OS_MAC)
-  menu.addAction(m_GlobalMenu->getClearPipeline());
-#else
   if (NULL != m_ActiveWindow)
   {
-    menu.addAction(m_ActiveWindow->getDREAM3DMenu()->getClearPipeline());
-  }
-#endif
+    PipelineViewWidget* pipelineView = m_ActiveWindow->getPipelineViewWidget();
+    QMenu menu;
 
-  if (NULL != m_ActiveWindow)
-  {
+  #if defined(Q_OS_MAC)
+    menu.addAction(m_GlobalMenu->getClearPipeline());
+  #else
+    if (NULL != m_ActiveWindow)
+    {
+      menu.addAction(m_ActiveWindow->getDREAM3DMenu()->getClearPipeline());
+    }
+  #endif
+
     menu.exec(pipelineView->mapToGlobal(pos));
   }
 }
