@@ -414,9 +414,9 @@ void DREAM3DApplication::updateRecentFileList(const QString& file)
   recentFilesMenu->addSeparator();
   recentFilesMenu->addAction(clearRecentFilesAction);
 #else
-  QMap<DREAM3D_UI*, QMenu*> windows = dream3dApp->getDREAM3DInstanceMap();
+  QMap<DREAM3D_UI*, QAction*> windows = dream3dApp->getDREAM3DInstanceMap();
 
-  QMapIterator<DREAM3D_UI*, QMenu*> iter(windows);
+  QMapIterator<DREAM3D_UI*, QAction*> iter(windows);
   while (iter.hasNext())
   {
     iter.next();
@@ -472,9 +472,9 @@ void DREAM3DApplication::on_actionClearRecentFiles_triggered()
   DREAM3DSettings prefs;
   recents->writeList(prefs);
 #else
-  QMap<DREAM3D_UI*, QMenu*> windows = dream3dApp->getDREAM3DInstanceMap();
+  QMap<DREAM3D_UI*, QAction*> windows = dream3dApp->getDREAM3DInstanceMap();
 
-  QMapIterator<DREAM3D_UI*, QMenu*> iter(windows);
+  QMapIterator<DREAM3D_UI*, QAction*> iter(windows);
   while (iter.hasNext())
   {
     iter.next();
@@ -1116,6 +1116,7 @@ void DREAM3DApplication::on_actionShowToolbox_triggered(bool visible)
     m_DREAM3DToolbox->blockSignals(false);
   }
 #else
+  actionShowToolbox = m_ActiveWindow->getDREAM3DMenu()->getShowToolbox();
   if (NULL != actionShowToolbox && NULL != m_DREAM3DToolbox)
   {
     actionShowToolbox->blockSignals(true);

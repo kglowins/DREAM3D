@@ -126,7 +126,7 @@ DREAM3D_UI::DREAM3D_UI(QWidget* parent) :
 #if !defined(Q_OS_MAC)
   // Create the menu
   m_InstanceMenu = new DREAM3DMenu();
-  m_InstanceMenu->setIssuesAction(actionShowIssues);
+  m_InstanceMenu->addIssuesAction(actionShowIssues);
   setMenuBar(m_InstanceMenu->getMenuBar());
 #endif
   connect(actionShowIssues, SIGNAL(triggered(bool)), dream3dApp, SLOT(on_actionShowIssues_triggered(bool)) );
