@@ -31,14 +31,6 @@
    </property>
    <item row="0" column="0">
     <widget class="QTabWidget" name="toolboxTabWidget">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
      <property name="tabPosition">
       <enum>QTabWidget::West</enum>
      </property>
