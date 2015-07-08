@@ -277,7 +277,7 @@ void FilterLibraryWidget::on_filterTreeView_itemDoubleClicked(QTreeWidgetItem* i
   if(nodeType.toInt() == FILTER_NODE_TYPE)
   {
     QString filterClassName = item->data(0, Qt::UserRole + 1).toString();
-    emit filterItemDoubleClicked(filterClassName);
+    //emit filterItemDoubleClicked(filterClassName);
   }
 }
 
