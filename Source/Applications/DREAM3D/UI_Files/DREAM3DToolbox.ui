@@ -15,16 +15,16 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
-    <number>0</number>
+    <number>3</number>
    </property>
    <property name="topMargin">
-    <number>0</number>
+    <number>3</number>
    </property>
    <property name="rightMargin">
-    <number>0</number>
+    <number>3</number>
    </property>
    <property name="bottomMargin">
-    <number>0</number>
+    <number>3</number>
    </property>
    <property name="spacing">
     <number>0</number>
@@ -37,15 +37,13 @@
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">QTabWidget::tab-bar{
-alignment: left;
-}</string>
+      <string notr="true"/>
      </property>
      <property name="tabPosition">
       <enum>QTabWidget::West</enum>
      </property>
      <property name="tabShape">
-      <enum>QTabWidget::Triangular</enum>
+      <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
       <number>0</number>
@@ -55,6 +53,9 @@ alignment: left;
        <width>16</width>
        <height>16</height>
       </size>
+     </property>
+     <property name="elideMode">
+      <enum>Qt::ElideRight</enum>
      </property>
      <widget class="QWidget" name="filterListTab">
       <attribute name="title">
