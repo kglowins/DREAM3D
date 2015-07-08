@@ -54,7 +54,7 @@
 // -----------------------------------------------------------------------------
 BookmarksTreeView::BookmarksTreeView(QWidget* parent) :
   QTreeView(parent),
-  m_IndexBeingDragged(QModelIndex()),
+  m_CurrentIndex(QModelIndex()),
   m_TopLevelItemPlaceholder(QModelIndex())
 {
   setContextMenuPolicy(Qt::CustomContextMenu);
@@ -63,6 +63,7 @@ BookmarksTreeView::BookmarksTreeView(QWidget* parent) :
 
   connect(this, SIGNAL(collapsed(const QModelIndex&)), SLOT(collapseIndex(const QModelIndex&)));
   connect(this, SIGNAL(expanded(const QModelIndex&)), SLOT(expandIndex(const QModelIndex&)));
+  connect(this, SIGNAL(clicked(const QModelIndex&)), SLOT(updateCurrentSelection(const QModelIndex&)));
 
   BookmarksItemDelegate* dlg = new BookmarksItemDelegate(this);
   setItemDelegate(dlg);
@@ -85,6 +86,16 @@ void BookmarksTreeView::addActionList(QList<QAction*> actionList)
   {
     m_Menu.addAction(actionList[i]);
   }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void BookmarksTreeView::updateCurrentSelection(const QModelIndex &index)
+{
+  m_CurrentlySelectedRows = selectionModel()->selectedRows(BookmarksItem::Path);
+  m_CurrentIndex = index;
+  m_CurrentSelection = selectionModel()->selection();
 }
 
 // -----------------------------------------------------------------------------
@@ -135,14 +146,19 @@ void BookmarksTreeView::performDrag()
 {
   BookmarksModel* model = BookmarksModel::Instance();
 
-  m_IndexBeingDragged = currentIndex();
-  if (m_IndexBeingDragged.isValid())
+  if (m_CurrentlySelectedRows.size() > 0)
   {
     QMimeData* mimeData = new QMimeData;
-    QString path = model->index(m_IndexBeingDragged.row(), BookmarksItem::Path, m_IndexBeingDragged.parent()).data().toString();
+    QList<QUrl> urls;
+    for (int i = 0; i < m_CurrentlySelectedRows.size(); i++)
+    {
+      QModelIndex index = m_CurrentlySelectedRows[i];
+      QString path = model->index(index.row(), BookmarksItem::Path, index.parent()).data().toString();
+      urls.push_back(QUrl(path));
+    }
     QString source = "Bookmarks";
     mimeData->setData("Source", source.toLatin1());
-    mimeData->setText(path);
+    mimeData->setUrls(urls);
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(mimeData);
@@ -183,7 +199,8 @@ void BookmarksTreeView::dragLeaveEvent(QDragLeaveEvent* event)
 
   clearSelection();
 
-  setCurrentIndex(m_IndexBeingDragged);
+  selectionModel()->select(m_CurrentSelection, QItemSelectionModel::SelectCurrent);
+  setCurrentIndex(m_CurrentIndex);
 }
 
 // -----------------------------------------------------------------------------
@@ -224,7 +241,7 @@ void BookmarksTreeView::dragMoveEvent(QDragMoveEvent* event)
     else
     {
       // Set the current index back to the index being dragged, but don't highlight it
-      selectionModel()->setCurrentIndex(m_IndexBeingDragged, QItemSelectionModel::NoUpdate);
+      selectionModel()->setCurrentIndex(m_CurrentIndex, QItemSelectionModel::NoUpdate);
     }
   }
 
@@ -257,30 +274,41 @@ void BookmarksTreeView::dropEvent(QDropEvent* event)
     {
       QModelIndex newParent = model->index(currentIndex().row(), BookmarksItem::Name, currentIndex().parent());
 
-      if (model->flags(newParent).testFlag(Qt::ItemIsDropEnabled) == true && newParent != m_IndexBeingDragged)
+      bool didMove = false;
+      for (int i = 0; i < m_CurrentlySelectedRows.size(); i++)
       {
-        QModelIndex oldParent = m_IndexBeingDragged.parent();
-
-        if (m_TopLevelItemPlaceholder.isValid())
+        QModelIndex ind = m_CurrentlySelectedRows[i];
+        QModelIndex indexToMove = model->index(ind.row(), BookmarksItem::Name, ind.parent());
+        if (model->flags(newParent).testFlag(Qt::ItemIsDropEnabled) == true && newParent != indexToMove)
         {
-          // If the parent is the placeholder, change the parent to the root.
-          if (m_TopLevelItemPlaceholder == newParent)
+          QModelIndex oldParent = indexToMove.parent();
+
+          if (m_TopLevelItemPlaceholder.isValid())
           {
-            newParent = QModelIndex();
+            // If the parent is the placeholder, change the parent to the root.
+            if (m_TopLevelItemPlaceholder == newParent)
+            {
+              newParent = QModelIndex();
+            }
+
+            model->removeRow(model->rowCount() - 1, rootIndex());
+            m_TopLevelItemPlaceholder = QModelIndex();
           }
 
-          model->removeRow(model->rowCount() - 1, rootIndex());
-          m_TopLevelItemPlaceholder = QModelIndex();
+          if (indexToMove.isValid())
+          {
+            model->moveIndexInternally(indexToMove, oldParent, newParent);
+            didMove = true;
+          }
         }
+      }
 
-        if (m_IndexBeingDragged.isValid())
-        {
-          model->moveIndexInternally(m_IndexBeingDragged, oldParent, newParent);
-          expand(newParent);
-          model->sort(BookmarksItem::Name, Qt::AscendingOrder);
-          event->accept();
-          return;
-        }
+      if (didMove == true)
+      {
+        expand(newParent);
+        model->sort(BookmarksItem::Name, Qt::AscendingOrder);
+        event->accept();
+        return;
       }
     }
   }

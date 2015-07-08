@@ -126,6 +126,12 @@ class DREAM3DWidgetsLib_EXPORT BookmarksTreeView : public QTreeView
     */
     void mousePressEvent(QMouseEvent* event);
 
+    /**
+    * @brief updateCurrentSelection
+    * @param index
+    */
+    void updateCurrentSelection(const QModelIndex &index);
+
   private:
     void performDrag();
     void expandChildren(const QModelIndex& parent, BookmarksModel* model);
@@ -138,7 +144,9 @@ class DREAM3DWidgetsLib_EXPORT BookmarksTreeView : public QTreeView
     QList<QAction*>           m_LeafActions;
     QList<QAction*>           m_LeafErrorActions;
     QList<QAction*>           m_DefaultActions;
-    QModelIndex               m_IndexBeingDragged;
+    QModelIndexList           m_CurrentlySelectedRows;
+    QItemSelection            m_CurrentSelection;
+    QModelIndex               m_CurrentIndex;
     QModelIndex               m_TopLevelItemPlaceholder;
 };
 
