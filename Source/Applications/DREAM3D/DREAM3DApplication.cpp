@@ -77,13 +77,13 @@
 DREAM3DApplication::DREAM3DApplication(int& argc, char** argv) :
   QApplication(argc, argv),
   m_ActiveWindow(NULL),
-  m_DREAM3DToolbox(NULL),
 #if defined(Q_OS_MAC)
   m_GlobalMenu(NULL),
 #endif
-  m_OpenDialogLastDirectory(""),
+  m_DREAM3DToolbox(NULL),
   show_splash(true),
-  Splash(NULL)
+  m_SplashScreen(NULL),
+  m_OpenDialogLastDirectory("")
 {
   // Connection to update the recent files list on all windows when it changes
   QRecentFileList* recentsList = QRecentFileList::instance();
@@ -99,8 +99,8 @@ DREAM3DApplication::DREAM3DApplication(int& argc, char** argv) :
 // -----------------------------------------------------------------------------
 DREAM3DApplication::~DREAM3DApplication()
 {
-  delete this->Splash;
-  this->Splash = NULL;
+  delete this->m_SplashScreen;
+  this->m_SplashScreen = NULL;
 
   // If we are in Clear Cache mode, clear our prefs file and reset the program mode
   DREAM3DSettings prefs;
@@ -137,9 +137,9 @@ bool DREAM3DApplication::initialize(int argc, char* argv[])
 
   // Create and show the splash screen as the main window is being created.
   QPixmap pixmap(QLatin1String(":/branded_splash.png"));
-  this->Splash = new DSplashScreen(pixmap);
-  this->Splash->setMask(pixmap.createMaskFromColor(QColor(Qt::transparent)));
-  this->Splash->show();
+  this->m_SplashScreen = new DSplashScreen(pixmap);
+  this->m_SplashScreen->setMask(pixmap.createMaskFromColor(QColor(Qt::transparent)));
+  this->m_SplashScreen->show();
 
   QDir dir(QApplication::applicationDirPath());
 
@@ -169,7 +169,7 @@ bool DREAM3DApplication::initialize(int argc, char* argv[])
   if (show_splash)
   {
 //   delay(1);
-    this->Splash->finish(NULL);
+    this->m_SplashScreen->finish(NULL);
   }
   QApplication::instance()->processEvents();
 
@@ -338,7 +338,7 @@ QVector<IDREAM3DPlugin*> DREAM3DApplication::loadPlugins()
         if (loadingMap.value(pluginName, true) == true)
         {
           QString msg = QObject::tr("Loading Plugin %1").arg(fileName);
-          this->Splash->showMessage(msg);
+          this->m_SplashScreen->showMessage(msg);
           //IDREAM3DPlugin::Pointer ipPluginPtr(ipPlugin);
           ipPlugin->registerFilterWidgets(fwm);
           ipPlugin->registerFilters(fm);
@@ -356,7 +356,7 @@ QVector<IDREAM3DPlugin*> DREAM3DApplication::loadPlugins()
     }
     else
     {
-      Splash->hide();
+      m_SplashScreen->hide();
       QString message("The plugin did not load with the following error\n");
       message.append(loader->errorString());
       QMessageBox box(QMessageBox::Critical, tr("DREAM3D Plugin Load Error"), tr(message.toStdString().c_str()));
@@ -364,7 +364,7 @@ QVector<IDREAM3DPlugin*> DREAM3DApplication::loadPlugins()
       box.setDefaultButton(QMessageBox::Ok);
       box.setWindowFlags(box.windowFlags() | Qt::WindowStaysOnTopHint);
       box.exec();
-      Splash->show();
+      m_SplashScreen->show();
       delete loader;
     }
   }

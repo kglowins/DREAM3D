@@ -173,12 +173,13 @@ class DREAM3DApplication : public QApplication
     * but the application is still running. */
     QMenu*                                  m_PlaceholderViewMenu;
 
-    QString                                 m_OpenDialogLastDirectory;
-
     DREAM3DToolbox*                         m_DREAM3DToolbox;
 
     bool                                    show_splash;
-    DSplashScreen*                          Splash;
+
+    DSplashScreen*                          m_SplashScreen;
+
+    QString                                 m_OpenDialogLastDirectory;
 
     QVector<QPluginLoader*>                 m_PluginLoaders;
 
