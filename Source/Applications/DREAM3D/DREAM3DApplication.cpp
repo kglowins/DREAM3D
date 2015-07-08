@@ -102,6 +102,9 @@ DREAM3DApplication::~DREAM3DApplication()
   delete this->m_SplashScreen;
   this->m_SplashScreen = NULL;
 
+  delete m_DREAM3DToolbox;
+  m_DREAM3DToolbox = NULL;
+
   // If we are in Clear Cache mode, clear our prefs file and reset the program mode
   DREAM3DSettings prefs;
   if (prefs.value("Program Mode", "") == "Clear Cache")
@@ -111,9 +114,6 @@ DREAM3DApplication::~DREAM3DApplication()
 
     prefs.setValue("Program Mode", "Standard");
   }
-
-  delete m_DREAM3DToolbox;
-  m_DREAM3DToolbox = NULL;
 }
 
 // -----------------------------------------------------------------------------
