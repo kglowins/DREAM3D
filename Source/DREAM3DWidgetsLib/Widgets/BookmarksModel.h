@@ -68,25 +68,25 @@ class DREAM3DWidgetsLib_EXPORT BookmarksModel : public QAbstractItemModel
 
     static BookmarksModel* NewInstanceFromFile(QString filePath);
 
-    QVariant data(const QModelIndex& index, int role) const Q_DECL_OVERRIDE;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    QVariant data(const QModelIndex& index, int role) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
     virtual QModelIndex sibling(int row, int column, const QModelIndex& idx) const;
 
     bool isEmpty();
 
-    QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    QModelIndex parent(const QModelIndex& index) const Q_DECL_OVERRIDE;
+    QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+    QModelIndex parent(const QModelIndex& index) const;
 
-    int rowCount(const QModelIndex& parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    int columnCount(const QModelIndex& parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    int columnCount(const QModelIndex& parent = QModelIndex()) const;
 
-    bool insertRows(int position, int rows, const QModelIndex& parent = QModelIndex()) Q_DECL_OVERRIDE;
-    bool removeRows(int position, int rows, const QModelIndex& parent = QModelIndex()) Q_DECL_OVERRIDE;
+    bool insertRows(int position, int rows, const QModelIndex& parent = QModelIndex());
+    bool removeRows(int position, int rows, const QModelIndex& parent = QModelIndex());
 
-    Qt::ItemFlags flags(const QModelIndex& index) const Q_DECL_OVERRIDE;
+    Qt::ItemFlags flags(const QModelIndex& index) const;
 
-    bool setData(const QModelIndex& index, const QVariant& value, int role) Q_DECL_OVERRIDE;
+    bool setData(const QModelIndex& index, const QVariant& value, int role);
 
     bool needsToBeExpanded(const QModelIndex& index);
     void setNeedsToBeExpanded(const QModelIndex& index, bool value);

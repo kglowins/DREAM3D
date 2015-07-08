@@ -61,8 +61,8 @@ public:
   PrebuiltsWidget* getPrebuiltsWidget();
 
 protected:
-  void showEvent(QShowEvent * event) override;
-  void hideEvent(QHideEvent * event) override;
+  void showEvent(QShowEvent * event);
+  void hideEvent(QHideEvent * event);
 
 signals:
   void toolBoxVisibilityChanged(bool visible);

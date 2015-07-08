@@ -93,7 +93,7 @@ class DREAM3DWidgetsLib_EXPORT BookmarksTreeView : public QTreeView
     * @brief setModel
     * @param model
     */
-    void setModel(QAbstractItemModel* model) Q_DECL_OVERRIDE;
+    void setModel(QAbstractItemModel* model);
 
   public slots:
     void collapseIndex(const QModelIndex& index);
@@ -106,7 +106,7 @@ class DREAM3DWidgetsLib_EXPORT BookmarksTreeView : public QTreeView
     void dragMoveEvent(QDragMoveEvent* event);
     void dropEvent(QDropEvent* event);
 
-    void currentChanged(const QModelIndex& current, const QModelIndex& previous) Q_DECL_OVERRIDE;
+    void currentChanged(const QModelIndex& current, const QModelIndex& previous);
 
     /**
     * @brief Adds the actions in the actionList parameter to the right-click menu
