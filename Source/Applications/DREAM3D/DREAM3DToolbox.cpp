@@ -94,7 +94,7 @@ void DREAM3DToolbox::readSettings()
   prefs.beginGroup("DockWidgetSettings");
   prefs.beginGroup("Toolbox");
 
-  bool b = prefs.value(objectName(), false).toBool();
+  bool b = prefs.value(objectName(), true).toBool();
   dream3dApp->on_actionShowToolbox_triggered(b);
 
   if (prefs.contains(QString("WindowGeometry")))
