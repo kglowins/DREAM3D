@@ -639,7 +639,7 @@ void DREAM3D_UI::on_pipelineViewWidget_pipelineOpened(QString& file, const bool&
   if (changeTitle == true)
   {
     QFileInfo fi(file);
-    setWindowTitle(QString("[*]") + fi.baseName() + " - DREAM3D");
+    setWindowTitle(QString("[*]") + fi.baseName() + " - DREAM.3D");
     setWindowModified(false);
   }
   else
